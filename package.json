@@ -1,20 +1,28 @@
 {
-  "name": "root",
-  "private": true,
+  "name": "react-async-utils",
+  "version": "0.3.0",
+  "description": "React utils to deal with async data",
+  "files": [
+    "lib"
+  ],
+  "main": "./lib/index.js",
+  "typings": "./lib/index.d.ts",
   "devDependencies": {
-    "lerna": "^3.6.0",
-    "tslint": "^5.12.0",
-    "tslint-react": "^3.6.0",
-    "typescript": "3.2.2",
-    "typescript-tslint-plugin": "^0.2.1"
+    "@types/node": "10.12.18",
+    "@types/react": "16.7.17",
+    "react": "16.7.0-alpha.2",
+    "typescript": "3.2.2"
+  },
+  "peerDependencies": {
+    "@types/node": "10.12.18",
+    "@types/react": "16.7.17",
+    "react": "16.7.0-alpha.2"
   },
   "scripts": {
-    "bootstrap": "lerna bootstrap --hoist",
-    "build": "rmdir packages\\react-async-utils\\lib /s /q && tsc -p packages\\react-async-utils",
-    "tslint": "tslint -p . -t verbose"
+    "test": "echo \"Error: run tests from root\" && exit 1",
+    "build": "rmdir lib /s /q && tsc -p ."
   },
-  "prettier": {
-    "singleQuote": true,
-    "trailingComma": "all"
-  }
+  "author": "Carlos Gines <carlos.gines.fuster@gmail.com>",
+  "repository": "github:CarlosGines/react-async-utils",
+  "license": "ISC"
 }
