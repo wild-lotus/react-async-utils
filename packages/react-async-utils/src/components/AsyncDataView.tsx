@@ -4,13 +4,13 @@ import { AsyncView, RenderOptions } from './AsyncView';
 
 interface Props<P, O> {
   getData: (options?: O) => Promise<P>;
-  asyncDataOptions: AsyncDataOptions<P>;
-  renderOptions: RenderOptions;
+  asyncDataOptions?: AsyncDataOptions<P>;
+  renderOptions?: RenderOptions;
   children: (
     payload: P | undefined,
     triggerAsyncData: (options?: O) => Promise<void>,
     loading?: boolean,
-  ) => React.ReactChildren;
+  ) => React.ReactNode;
 }
 
 export function AsyncDataView<P, O>({

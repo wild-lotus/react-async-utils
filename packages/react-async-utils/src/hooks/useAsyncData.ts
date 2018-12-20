@@ -11,7 +11,12 @@ export interface AsyncDataOptions<P> {
 
 export function useAsyncData<P, O>(
   getData: (options?: O) => Promise<P>,
-  { autoTrigger, onChange, onSuccess, onError }: AsyncDataOptions<P> = {},
+  {
+    autoTrigger = true,
+    onChange,
+    onSuccess,
+    onError,
+  }: AsyncDataOptions<P> = {},
 ): [Async<P>, (options?: O) => Promise<void>] {
   const [asyncData, setAsyncData] = useState<Async<P>>(async.init());
   const triggerGetData = useMemo(
