@@ -21,6 +21,7 @@ export function useAsyncData<P, O>(
   const [asyncData, setAsyncData] = useState<Async<P>>(async.init());
   const memo = useMemo(
     () => ({
+      reset: () => setAsyncData(async.init()),
       trigger: async (options?: O) =>
         await async.task(() => getData(options), setAsyncData, {
           currentState: asyncData,
@@ -28,7 +29,6 @@ export function useAsyncData<P, O>(
           onError,
           onSuccess,
         }),
-      reset: () => setAsyncData(async.init()),
     }),
     [],
   );
