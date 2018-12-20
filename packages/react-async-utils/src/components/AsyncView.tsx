@@ -3,17 +3,17 @@ import * as async from '../helpers';
 import { Async } from '../types';
 
 export interface RenderOptions {
-  topRenderLoading: () => React.ReactNode;
-  bottomRenderLoading: () => React.ReactNode;
-  topRenderError: (error: Error) => React.ReactNode;
-  bottomRenderError: (error: Error) => React.ReactNode;
+  topRenderLoading?: () => React.ReactNode;
+  bottomRenderLoading?: () => React.ReactNode;
+  topRenderError?: (error: Error) => React.ReactNode;
+  bottomRenderError?: (error: Error) => React.ReactNode;
   forceInvalidated?: boolean;
 }
 
 interface Props<P> {
   asyncData: Async<P>;
-  renderOptions: RenderOptions;
-  children?: (data?: P, loading?: boolean) => React.ReactChildren;
+  renderOptions?: RenderOptions;
+  children?: (data?: P, loading?: boolean) => React.ReactNode;
 }
 
 export class AsyncView<P> extends React.PureComponent<Props<P>> {
@@ -21,12 +21,12 @@ export class AsyncView<P> extends React.PureComponent<Props<P>> {
     const {
       asyncData,
       renderOptions: {
-        topRenderLoading,
-        bottomRenderLoading,
-        topRenderError,
-        bottomRenderError,
-        forceInvalidated,
-      },
+        topRenderLoading = undefined,
+        bottomRenderLoading = undefined,
+        topRenderError = undefined,
+        bottomRenderError = undefined,
+        forceInvalidated = false,
+      } = {},
       children,
     } = this.props;
     return async.render(
@@ -35,27 +35,49 @@ export class AsyncView<P> extends React.PureComponent<Props<P>> {
       () => children != null && children(),
       () => (
         <>
-          {topRenderLoading && topRenderLoading()}
+          {topRenderLoading
+            ? topRenderLoading()
+            : bottomRenderLoading
+            ? null
+            : 'Loading...'}
           {children != null && children(undefined, true)}
-          {bottomRenderLoading && bottomRenderLoading()}
+          {bottomRenderLoading
+            ? bottomRenderLoading()
+            : topRenderLoading
+            ? null
+            : 'Loading...'}
         </>
       ),
       (data, invalidated) => (
         <>
           {(invalidated || forceInvalidated) &&
-            topRenderLoading &&
-            topRenderLoading()}
+            (topRenderLoading
+              ? topRenderLoading()
+              : bottomRenderLoading
+              ? null
+              : 'Loading...')}
           {children != null && children(data, invalidated || forceInvalidated)}
           {(invalidated || forceInvalidated) &&
-            bottomRenderLoading &&
-            bottomRenderLoading()}
+            (bottomRenderLoading
+              ? bottomRenderLoading()
+              : topRenderLoading
+              ? null
+              : 'Loading...')}
         </>
       ),
       error => (
         <>
-          {topRenderError != null && topRenderError(error)}
+          {topRenderError ? (
+            topRenderError(error)
+          ) : bottomRenderError ? null : (
+            <span>Error: {error}</span>
+          )}
           {children != null && children()}
-          {bottomRenderError != null && bottomRenderError(error)}
+          {bottomRenderError ? (
+            bottomRenderError(error)
+          ) : topRenderError ? null : (
+            <span>Error: {error}</span>
+          )}
         </>
       ),
     );
