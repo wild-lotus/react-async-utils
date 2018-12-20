@@ -1,0 +1,19 @@
+{
+  "extends": ["tslint:recommended", "tslint-react"],
+  "rules": {
+    "arrow-parens": false,
+    "interface-name": false,
+    "jsx-no-multiline-js": false,
+    "jsx-boolean-value": [true, "never"],
+    "jsx-curly-spacing": false,
+    "no-implicit-dependencies": [true, ["core-js", "history"]],
+    "max-line-length": false,
+    "member-access": false,
+    "no-unused-expression": [true, "allow-fast-null-checks"],
+    "object-literal-key-quotes": [true, "as-needed"],
+    "quotemark": false,
+    "semicolon": false,
+    "typedef-whitespace": false
+  },
+  "linterOptions": { "exclude": ["./**/serviceWorker.ts"] }
+}

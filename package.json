@@ -1,0 +1,21 @@
+{
+  "name": "react-async-hooks",
+  "private": true,
+  "devDependencies": {
+    "lerna": "^3.6.0",
+    "tslint": "^5.12.0",
+    "tslint-react": "^3.6.0",
+    "typescript": "3.2.2",
+    "typescript-tslint-plugin": "^0.2.1"
+  },
+  "scripts": {
+    "bootstrap": "lerna bootstrap --hoist",
+    "build:lib": "rmdir packages/react-async-hooks/lib /s /q && tsc -p packages/react-async-hooks",
+    "build:demo": "cd packages/demo && npm run build",
+    "tslint": "tslint -p . -t verbose"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "trailingComma": "all"
+  }
+}
