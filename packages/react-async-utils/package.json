@@ -1,7 +1,7 @@
 {
-  "name": "react-async-hooks",
-  "version": "0.0.1",
-  "description": "",
+  "name": "react-async-utils",
+  "version": "0.0.0",
+  "description": "React utils to deal with async data",
   "files": [
     "lib"
   ],
@@ -10,7 +10,8 @@
   "devDependencies": {
     "@types/node": "10.12.18",
     "@types/react": "16.7.17",
-    "react": "16.7.0-alpha.2"
+    "react": "16.7.0-alpha.2",
+    "typescript": "3.2.2"
   },
   "peerDependencies": {
     "@types/node": "10.12.18",
@@ -18,8 +19,9 @@
     "react": "16.7.0-alpha.2"
   },
   "scripts": {
-    "test": "echo \"Error: run tests from root\" && exit 1"
+    "test": "echo \"Error: run tests from root\" && exit 1",
+    "build": "rmdir lib /s /q && tsc -p ."
   },
-  "author": "",
+  "author": "Carlos Gines <carlos.gines.fuster@gmail.com>",
   "license": "ISC"
 }
