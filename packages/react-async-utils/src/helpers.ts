@@ -65,6 +65,9 @@ export const safeSuccess = <P>(origin?: Async<P>): SuccessAsync<P> => {
 export const safePayload = <P>(origin?: Async<P>): P =>
   safeSuccess(origin).payload;
 
+export const payloadOrUndefined = <P, D>(origin: Async<P>): P | undefined =>
+  origin && isSuccess(origin) ? origin.payload : undefined;
+
 export const invalidate = <P>(origin: SuccessAsync<P>): SuccessAsync<P> =>
   origin.invalidated ? origin : { ...origin, invalidated: true };
 

@@ -17,23 +17,26 @@ export function useAsyncData<P, O>(
     onSuccess,
     onError,
   }: AsyncDataOptions<P> = {},
-): [Async<P>, (options?: O) => Promise<void>] {
+): [Async<P>, (options?: O) => Promise<void>, () => void] {
   const [asyncData, setAsyncData] = useState<Async<P>>(async.init());
-  const triggerGetData = useMemo(
-    () => async (options?: O) =>
-      await async.task(() => getData(options), setAsyncData, {
-        currentState: asyncData,
-        onChange,
-        onError,
-        onSuccess,
-      }),
+  const memo = useMemo(
+    () => ({
+      trigger: async (options?: O) =>
+        await async.task(() => getData(options), setAsyncData, {
+          currentState: asyncData,
+          onChange,
+          onError,
+          onSuccess,
+        }),
+      reset: () => setAsyncData(async.init()),
+    }),
     [],
   );
   useEffect(
     () => {
-      autoTrigger && triggerGetData();
+      autoTrigger && memo.trigger();
     },
     [autoTrigger],
   );
-  return [asyncData, triggerGetData];
+  return [asyncData, memo.trigger, memo.reset];
 }
