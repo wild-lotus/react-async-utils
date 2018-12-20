@@ -1,5 +1,5 @@
 {
-  "name": "react-async-hooks",
+  "name": "root",
   "private": true,
   "devDependencies": {
     "lerna": "^3.6.0",
@@ -10,8 +10,7 @@
   },
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist",
-    "build:lib": "rmdir packages/react-async-hooks/lib /s /q && tsc -p packages/react-async-hooks",
-    "build:demo": "cd packages/demo && npm run build",
+    "build": "rmdir packages\\react-async-utils\\lib /s /q && tsc -p packages\\react-async-utils",
     "tslint": "tslint -p . -t verbose"
   },
   "prettier": {
