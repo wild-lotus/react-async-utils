@@ -73,12 +73,12 @@ export class AsyncViewWrapper extends React.PureComponent<Props> {
 
     return (
       <>
-        {error &&
+        {(Array.isArray(error) ? error.length : error) &&
           (topRenderError
             ? (topRenderError as any)(error)
             : bottomRenderError
             ? null
-            : getDefaultErrorsNode(error))}
+            : getDefaultErrorsNode(error!))}
 
         {loading &&
           (topRenderLoading
