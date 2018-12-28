@@ -18,46 +18,39 @@ const getDefaultErrorsNode = (error: Error | Error[]) =>
 
 interface PropsSingle {
   asyncData: Async<unknown>;
-  renderOptions?: {
-    topRenderLoading?: () => React.ReactNode;
-    bottomRenderLoading?: () => React.ReactNode;
-    topRenderError?: (error: Error) => React.ReactNode;
-    bottomRenderError?: (error: Error) => React.ReactNode;
-    forceLoading?: boolean;
-    forceError?: Error;
-  };
+  topRenderLoading?: () => React.ReactNode;
+  bottomRenderLoading?: () => React.ReactNode;
+  topRenderError?: (error: Error) => React.ReactNode;
+  bottomRenderError?: (error: Error) => React.ReactNode;
+  forceLoading?: boolean;
+  forceError?: Error;
   children: React.ReactNode;
 }
 
 interface PropsMulti {
   asyncData: Array<Async<unknown>>;
-  renderOptions?: {
-    topRenderLoading?: () => React.ReactNode;
-    bottomRenderLoading?: () => React.ReactNode;
-    topRenderError?: (errors: Error[]) => React.ReactNode;
-    bottomRenderError?: (errors: Error[]) => React.ReactNode;
-    forceLoading?: boolean;
-    forceError?: Error[];
-  };
+  topRenderLoading?: () => React.ReactNode;
+  bottomRenderLoading?: () => React.ReactNode;
+  topRenderError?: (errors: Error[]) => React.ReactNode;
+  bottomRenderError?: (errors: Error[]) => React.ReactNode;
+  forceLoading?: boolean;
+  forceError?: Error[];
   children: React.ReactNode;
 }
 
 type Props = PropsSingle | PropsMulti;
 
-export class AsyncViewWrapper extends React.PureComponent<Props> {
-  render() {
-    const {
-      asyncData,
-      renderOptions: {
-        topRenderLoading = undefined,
-        bottomRenderLoading = undefined,
-        forceLoading = false,
-        topRenderError = undefined,
-        bottomRenderError = undefined,
-        forceError = undefined,
-      } = {},
-      children,
-    } = this.props;
+export const AsyncViewWrapper = React.memo(
+  ({
+    asyncData,
+    topRenderLoading,
+    bottomRenderLoading,
+    forceLoading,
+    topRenderError,
+    bottomRenderError,
+    forceError,
+    children,
+  }: Props) => {
     const loading =
       forceLoading ||
       (Array.isArray(asyncData)
@@ -70,7 +63,6 @@ export class AsyncViewWrapper extends React.PureComponent<Props> {
         : async.isError(asyncData)
         ? asyncData.error
         : undefined);
-
     return (
       <>
         {(Array.isArray(error) ? error.length : error) &&
@@ -89,7 +81,7 @@ export class AsyncViewWrapper extends React.PureComponent<Props> {
 
         {children}
 
-        {(loading || forceLoading) &&
+        {loading &&
           (bottomRenderLoading
             ? bottomRenderLoading()
             : topRenderError
@@ -104,5 +96,5 @@ export class AsyncViewWrapper extends React.PureComponent<Props> {
             : getDefaultErrorsNode(error))}
       </>
     );
-  }
-}
+  },
+);
