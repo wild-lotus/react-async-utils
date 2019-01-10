@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { ReactNode } from 'react';
 import {
   Async,
   ErrorAsync,
@@ -86,7 +86,7 @@ export const update = <P>(
     invalidated != null ? invalidated : origin.invalidated,
   );
 
-export const map = <P, T>(
+export const mapIfSuccessOrKeep = <P, T>(
   origin: Async<P>,
   mapper: (payload: P) => T,
 ): Async<T> =>
@@ -94,25 +94,25 @@ export const map = <P, T>(
     ? success(mapper(origin.payload), origin.invalidated)
     : origin;
 
-export const renderIfSuccess = <P>(
+export const renderIfSuccessOrNull = <P, T>(
   origin: Async<P>,
-  renderSuccess: (payload: P, invalidated?: boolean) => React.ReactNode,
-): React.ReactNode =>
+  renderSuccess: (payload: P, invalidated?: boolean) => T,
+): T | null =>
   isSuccess(origin) ? renderSuccess(origin.payload, origin.invalidated) : null;
 
-export const renderIfError = <P>(
+export const renderIfErrorOrNull = <P, T>(
   origin: Async<P>,
-  renderError: (error: Error) => React.ReactNode,
-): React.ReactNode => (isError(origin) ? renderError(origin.error) : null);
+  renderError: (error: Error) => T,
+): T | null => (isError(origin) ? renderError(origin.error) : null);
 
 export const render = <P>(
   origin: Async<P>,
   name: string,
-  renderInit?: () => React.ReactNode,
-  renderInProgress?: () => React.ReactNode,
-  renderSuccess?: (payload: P, invalidated?: boolean) => React.ReactNode,
-  renderError?: (error: Error) => React.ReactNode,
-): React.ReactNode => {
+  renderInit?: () => ReactNode,
+  renderInProgress?: () => ReactNode,
+  renderSuccess?: (payload: P, invalidated?: boolean) => ReactNode,
+  renderError?: (error: Error) => ReactNode,
+): ReactNode => {
   switch (origin.progress) {
     case Progress.Init:
       return renderInit === undefined ? `Not started ${name}` : renderInit();
