@@ -1,6 +1,6 @@
 {
   "name": "react-async-utils",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "React utils to deal with async data",
   "keywords": [
     "react",
@@ -16,13 +16,13 @@
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",
   "devDependencies": {
-    "@types/node": "10.12.18",
-    "@types/react": "16.7.18",
-    "react": "16.7.0-alpha.2",
-    "typescript": "3.2.2"
+    "@types/node": "10.12.19",
+    "@types/react": "16.7.22",
+    "react": "16.8.0-alpha.1",
+    "typescript": "3.2.4"
   },
   "peerDependencies": {
-    "react": "16.7.0-alpha.2"
+    "react": "16.8.0-alpha.1"
   },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1",

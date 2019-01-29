@@ -65,7 +65,7 @@ export const AsyncViewWrapper = React.memo(
         : undefined);
     return (
       <>
-        {(Array.isArray(error) ? error.length : error) &&
+        {(Array.isArray(error) ? error.length > 0 : error) &&
           (topRenderError
             ? (topRenderError as any)(error)
             : bottomRenderError
@@ -88,12 +88,12 @@ export const AsyncViewWrapper = React.memo(
             ? null
             : 'Loading...')}
 
-        {error &&
+        {(Array.isArray(error) ? error.length > 0 : error) &&
           (bottomRenderError
             ? (bottomRenderError as any)(error)
             : topRenderError
             ? null
-            : getDefaultErrorsNode(error))}
+            : getDefaultErrorsNode(error!))}
       </>
     );
   },
