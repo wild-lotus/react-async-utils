@@ -1,100 +1,70 @@
-import * as React from 'react';
+import React, { ReactNode, memo } from 'react';
 import * as async from '../helpers';
 import { Async } from '../types';
 
-const getDefaultErrorNode = (error: Error) => (
-  <span style={{ color: 'red' }}>Error: {error.message}</span>
-);
-
-const getDefaultErrorsNode = (error: Error | Error[]) =>
-  Array.isArray(error)
-    ? error.map((e, i) => (
-        <React.Fragment key={i}>
-          {i ? <br /> : null}
-          {getDefaultErrorNode(e)}
-        </React.Fragment>
-      ))
-    : getDefaultErrorNode(error);
-
 interface PropsSingle {
   asyncData: Async<unknown>;
-  topRenderLoading?: () => React.ReactNode;
-  bottomRenderLoading?: () => React.ReactNode;
-  topRenderError?: (error: Error) => React.ReactNode;
-  bottomRenderError?: (error: Error) => React.ReactNode;
+  renderLoading: () => ReactNode;
+  renderLoadingBeforeContent?: boolean;
   forceLoading?: boolean;
+  renderError: (error: Error) => ReactNode;
+  renderErrorBeforeContent?: boolean;
   forceError?: Error;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 interface PropsMulti {
-  asyncData: Array<Async<unknown>>;
-  topRenderLoading?: () => React.ReactNode;
-  bottomRenderLoading?: () => React.ReactNode;
-  topRenderError?: (errors: Error[]) => React.ReactNode;
-  bottomRenderError?: (errors: Error[]) => React.ReactNode;
+  asyncData: Async<unknown>[];
+  renderLoading: () => ReactNode;
+  renderLoadingBeforeContent?: boolean;
   forceLoading?: boolean;
+  renderError: (errors: Error[]) => ReactNode;
+  renderErrorBeforeContent?: boolean;
   forceError?: Error[];
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 type Props = PropsSingle | PropsMulti;
 
-export const AsyncViewWrapper = React.memo(
-  ({
-    asyncData,
-    topRenderLoading,
-    bottomRenderLoading,
-    forceLoading,
-    topRenderError,
-    bottomRenderError,
-    forceError,
-    children,
-  }: Props) => {
-    const loading =
-      forceLoading ||
-      (Array.isArray(asyncData)
-        ? async.isAnyInProgressOrInvalidated(...asyncData)
-        : async.isInProgressOrInvalidated(asyncData));
-    const error =
-      forceError ||
-      (Array.isArray(asyncData)
-        ? asyncData.filter(async.isError).map(ad => ad.error)
-        : async.isError(asyncData)
-        ? asyncData.error
-        : undefined);
-    return (
-      <>
-        {(Array.isArray(error) ? error.length > 0 : error) &&
-          (topRenderError
-            ? (topRenderError as any)(error)
-            : bottomRenderError
-            ? null
-            : getDefaultErrorsNode(error!))}
+export const AsyncViewWrapper = memo(function AsyncViewWrapper2({
+  asyncData,
+  renderLoading,
+  renderLoadingBeforeContent = false,
+  forceLoading,
+  renderError,
+  renderErrorBeforeContent = false,
+  forceError,
+  children,
+}: Props) {
+  const loading =
+    forceLoading ||
+    (Array.isArray(asyncData)
+      ? async.isAnyInProgressOrInvalidated(...asyncData)
+      : async.isInProgressOrInvalidated(asyncData));
+  const error =
+    forceError ||
+    (Array.isArray(asyncData)
+      ? asyncData.filter(async.isError).map(ad => ad.error)
+      : async.errorOrUndefined(asyncData));
+  return (
+    <>
+      {error &&
+      (!Array.isArray(error) || error.length > 0) &&
+      renderErrorBeforeContent
+        ? (renderError as (error: Error | Error[]) => ReactNode)(error)
+        : null}
 
-        {loading &&
-          (topRenderLoading
-            ? topRenderLoading()
-            : bottomRenderLoading
-            ? null
-            : 'Loading...')}
+      {loading && renderLoadingBeforeContent ? renderLoading() : null}
 
-        {children}
+      {children}
 
-        {loading &&
-          (bottomRenderLoading
-            ? bottomRenderLoading()
-            : topRenderError
-            ? null
-            : 'Loading...')}
+      {loading && !renderLoadingBeforeContent ? renderLoading() : null}
 
-        {(Array.isArray(error) ? error.length > 0 : error) &&
-          (bottomRenderError
-            ? (bottomRenderError as any)(error)
-            : topRenderError
-            ? null
-            : getDefaultErrorsNode(error!))}
-      </>
-    );
-  },
-);
+      {error &&
+      (!Array.isArray(error) || error.length > 0) &&
+      renderErrorBeforeContent
+        ? (renderError as (error: Error | Error[]) => ReactNode)(error)
+        : null}
+    </>
+  );
+});

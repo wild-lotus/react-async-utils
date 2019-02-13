@@ -1,42 +1,44 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import * as async from '../helpers';
 import { Async } from '../types';
 
-export interface AsyncDataOptions<P> {
-  autoTrigger?: boolean;
+export interface AsyncDataOptions<Payload, Args extends unknown[]> {
+  autoTriggerWith?: Args;
   onChange?: () => void;
-  onSuccess?: (payload: P) => void;
+  onSuccess?: (payload: Payload) => void;
   onError?: (error: Error) => void;
 }
 
-export function useAsyncData<P, O>(
-  getData: (options?: O) => Promise<P>,
+export function useAsyncData<Payload, Args extends unknown[]>(
+  getData: (...args: Args) => Promise<Payload>,
   {
-    autoTrigger = true,
+    autoTriggerWith,
     onChange,
     onSuccess,
     onError,
-  }: AsyncDataOptions<P> = {},
-): [Async<P>, (options?: O) => Promise<void>, () => void] {
-  const [asyncData, setAsyncData] = useState<Async<P>>(async.init());
-  const memo = useMemo(
-    () => ({
-      reset: () => setAsyncData(async.init()),
-      trigger: async (options?: O) =>
-        await async.task(() => getData(options), setAsyncData, {
-          currentState: asyncData,
-          onChange,
-          onError,
-          onSuccess,
-        }),
-    }),
+  }: AsyncDataOptions<Payload, Args> = {},
+): [Async<Payload>, (...args: Args) => Promise<void>, () => void] {
+  const [asyncData, setAsyncData] = useState<Async<Payload>>(async.init());
+  const asyncDataRef = useRef(asyncData);
+  const reset = useCallback(() => {
+    setAsyncData(async.init());
+    onChange && onChange();
+  }, []);
+  const trigger = useMemo(
+    () => async (...args: Args) =>
+      await async.task(() => getData(...args), setAsyncData, {
+        currentState: asyncDataRef.current,
+        onChange,
+        onError,
+        onSuccess,
+      }),
     [],
   );
-  useEffect(
-    () => {
-      autoTrigger && memo.trigger();
-    },
-    [autoTrigger],
-  );
-  return [asyncData, memo.trigger, memo.reset];
+  useEffect(() => {
+    asyncDataRef.current = asyncData;
+  }, [asyncData]);
+  useEffect(() => {
+    autoTriggerWith && trigger(...autoTriggerWith);
+  }, []);
+  return [asyncData, trigger, reset];
 }
