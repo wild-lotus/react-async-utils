@@ -53,7 +53,7 @@ const [asyncData, triggerAsyncData] = useAsyncData(getData);
 # Installation
 
 ```bash
-npm install react-async-utls
+npm install react-async-utils
 ```
 
 # Usage
