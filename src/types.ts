@@ -11,17 +11,17 @@ export interface InitAsync {
 export interface InProgressAsync {
   progress: Progress.InProgress;
 }
-export interface SuccessAsync<P> {
+export interface SuccessAsync<Payload> {
   progress: Progress.Success;
-  payload: P;
+  payload: Payload;
   invalidated?: boolean;
 }
 export interface ErrorAsync {
   progress: Progress.Error;
   error: Error;
 }
-export type Async<P> =
+export type Async<Payload> =
   | InitAsync
   | InProgressAsync
-  | SuccessAsync<P>
+  | SuccessAsync<Payload>
   | ErrorAsync;
