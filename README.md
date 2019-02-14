@@ -12,6 +12,7 @@ Collection of utils to work with asynchronous data in React. It especially shine
     - [render](#render)
     - [AsyncViewContainer](#AsyncViewContainer)
   - [useAsyncData hook](#useAsyncData-hook)
+- [API Reference (WIP)](<#api-reference-(wip)>)
 - [Contributing](#contributing)
 - [LICENSE](#license)
 
@@ -179,6 +180,10 @@ const [asyncData] = useAsyncData(getData, { autoTriggerWith: [] });
 ```
 
 ADVANCED: for the sake of simplicity, `useAsyncData` args are captured on the first render, and never considered again.
+
+# API Reference (WIP)
+
+Work in progress.
 
 # Contributing
 
