@@ -131,20 +131,22 @@ export const renderIfErrorOrNull = <Payload>(
 
 export const render = <Payload>(
   origin: Async<Payload>,
-  renderInit: () => ReactNode,
-  renderInProgress: () => ReactNode,
-  renderSuccess: (payload: Payload, invalidated?: boolean) => ReactNode,
-  renderError: (error: Error) => ReactNode,
+  renderInit: (() => ReactNode) | null,
+  renderInProgress: (() => ReactNode) | null,
+  renderSuccess:
+    | ((payload: Payload, invalidated?: boolean) => ReactNode)
+    | null,
+  renderError: ((error: Error) => ReactNode) | null,
 ): ReactNode => {
   switch (origin.progress) {
     case Progress.Init:
-      return renderInit();
+      return renderInit && renderInit();
     case Progress.InProgress:
-      return renderInProgress();
+      return renderInProgress && renderInProgress();
     case Progress.Success:
-      return renderSuccess(origin.payload, origin.invalidated);
+      return renderSuccess && renderSuccess(origin.payload, origin.invalidated);
     case Progress.Error:
-      return renderError(origin.error);
+      return renderError && renderError(origin.error);
   }
 };
 

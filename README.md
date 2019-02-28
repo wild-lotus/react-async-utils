@@ -1,4 +1,11 @@
 <h1 align="center">react-async-utils</h1>
+<p align="center">
+<a href="https://www.npmjs.com/package/react-async-utils"><img alt="npm" src="https://img.shields.io/npm/v/react-async-utils.svg"></a>
+<a href="https://snyk.io/vuln/npm:react-async-utils"><img alt="Snyk Vulnerabilities for npm package" src="https://img.shields.io/snyk/vulnerabilities/npm/react-async-utils.svg"></a>
+<a href="https://david-dm.org/carlosgines/react-async-utils"><img alt="David" src="https://img.shields.io/david/carlosgines/react-async-utils.svg"></a>
+<a href="https://github.com/CarlosGines/react-async-utils/blob/master/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/carlosgines/react-async-utils.svg"></a>
+<img alt="GitHub top language" src="https://img.shields.io/github/languages/top/carlosgines/react-async-utils.svg">
+</p>
 Collection of utils to work with asynchronous data in React. It especially shines when used with TypeScript, but it can be used with JavaScript.
 
 # Table of Contents
