@@ -23,7 +23,7 @@ export function useAsyncData<Payload, Args extends unknown[]>(
   const reset = useCallback(() => {
     setAsyncData(async.init());
     onChange && onChange();
-  }, []);
+  }, [onChange]);
   const trigger = useMemo(
     () => async (...args: Args) =>
       await async.task(() => getData(...args), setAsyncData, {
@@ -32,13 +32,13 @@ export function useAsyncData<Payload, Args extends unknown[]>(
         onError,
         onSuccess,
       }),
-    [],
+    [getData, onChange, onError, onSuccess],
   );
   useEffect(() => {
     asyncDataRef.current = asyncData;
   }, [asyncData]);
   useEffect(() => {
     autoTriggerWith && trigger(...autoTriggerWith);
-  }, []);
+  }, [autoTriggerWith, trigger]);
   return [asyncData, trigger, reset];
 }
