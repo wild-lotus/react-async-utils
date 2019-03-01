@@ -8,11 +8,17 @@ import {
   SuccessAsync,
 } from './types';
 
-export const init = <Payload>(): InitAsync => ({ progress: Progress.Init });
-export const inProgress = <Payload>(): InProgressAsync => ({
+//
+// Async Data "constructors"
+//
+
+export const newInit = <Payload>(): InitAsync => ({ progress: Progress.Init });
+
+export const newInProgress = <Payload>(): InProgressAsync => ({
   progress: Progress.InProgress,
 });
-export const success = <Payload>(
+
+export const newSuccess = <Payload>(
   payload: Payload,
   invalidated?: boolean,
 ): SuccessAsync<Payload> => ({
@@ -20,133 +26,105 @@ export const success = <Payload>(
   payload,
   progress: Progress.Success,
 });
-export const error = (errorObj: Error): ErrorAsync => ({
+
+export const newError = (errorObj: Error): ErrorAsync => ({
   error: errorObj,
   progress: Progress.Error,
 });
 
-export const isInit = <Payload>(f: Async<Payload>): f is InitAsync =>
-  f.progress === Progress.Init;
+//
+// Async Data state checkers
+//
+
+export const isInit = <Payload>(
+  asyncData: Async<Payload>,
+): asyncData is InitAsync => asyncData.progress === Progress.Init;
 export const isInProgress = <Payload>(
-  f: Async<Payload>,
-): f is InProgressAsync => f.progress === Progress.InProgress;
+  asyncData: Async<Payload>,
+): asyncData is InProgressAsync => asyncData.progress === Progress.InProgress;
 export const isSuccess = <Payload>(
-  f: Async<Payload>,
-): f is SuccessAsync<Payload> => f.progress === Progress.Success;
-export const isValidSuccess = <Payload>(f: Async<Payload>): boolean =>
-  isSuccess(f) && !f.invalidated;
-export const isInvalidated = <Payload>(f: Async<Payload>): boolean =>
-  isSuccess(f) && f.invalidated === true;
+  asyncData: Async<Payload>,
+): asyncData is SuccessAsync<Payload> =>
+  asyncData.progress === Progress.Success;
+export const isValidSuccess = <Payload>(asyncData: Async<Payload>): boolean =>
+  isSuccess(asyncData) && !asyncData.invalidated;
+export const isInvalidated = <Payload>(asyncData: Async<Payload>): boolean =>
+  isSuccess(asyncData) && asyncData.invalidated === true;
 export const isInProgressOrInvalidated = <Payload>(
-  f: Async<Payload>,
-): boolean => isInProgress(f) || isInvalidated(f);
-export const isError = <Payload>(f: Async<Payload>): f is ErrorAsync =>
-  f.progress === Progress.Error;
+  asyncData: Async<Payload>,
+): boolean => isInProgress(asyncData) || isInvalidated(asyncData);
+export const isError = <Payload>(
+  asyncData: Async<Payload>,
+): asyncData is ErrorAsync => asyncData.progress === Progress.Error;
 
 export const isAnyInit = (...args: Async<unknown>[]): boolean =>
-  args.some(f => isInit(f));
+  args.some(asyncData => isInit(asyncData));
 export const isAnyInProgress = (...args: Async<unknown>[]): boolean =>
-  args.some(f => isInProgress(f));
+  args.some(asyncData => isInProgress(asyncData));
 export const isAnySuccess = (...args: Async<unknown>[]): boolean =>
-  args.some(f => isSuccess(f));
+  args.some(asyncData => isSuccess(asyncData));
 export const isAnyValidSuccess = (...args: Async<unknown>[]): boolean =>
-  args.some(f => isValidSuccess(f));
+  args.some(asyncData => isValidSuccess(asyncData));
 export const isAnyInvalidated = (...args: Async<unknown>[]): boolean =>
-  args.some(f => isInvalidated(f));
+  args.some(asyncData => isInvalidated(asyncData));
 export const isAnyInProgressOrInvalidated = (
   ...args: Async<unknown>[]
-): boolean => args.some(f => isInProgressOrInvalidated(f));
+): boolean => args.some(asyncData => isInProgressOrInvalidated(asyncData));
 export const isAnyError = (...args: Async<unknown>[]): boolean =>
-  args.some(f => isError(f));
+  args.some(asyncData => isError(asyncData));
 
-export const safeAsyncSuccess = <Payload>(
-  origin?: Async<Payload>,
-): SuccessAsync<Payload> => {
-  if (origin != null && isSuccess(origin)) {
-    return origin;
-  }
-  throw new Error('Invalid cast from Async to SuccessAsync');
-};
-export const safeAsyncError = (origin?: Async<unknown>): ErrorAsync => {
-  if (origin != null && isError(origin)) {
-    return origin;
-  }
-  throw new Error('Invalid cast from Async to SuccessAsync');
-};
+//
+// Async Data transformations
+//
 
-export const safePayload = <Payload>(origin?: Async<Payload>): Payload =>
-  safeAsyncSuccess(origin).payload;
-export const safeError = (origin?: Async<unknown>): Error =>
-  safeAsyncError(origin).error;
-
-export const payloadOrUndefined = <Payload>(
+export const getPayload = <Payload>(
   origin: Async<Payload>,
-): Payload | undefined =>
-  origin && isSuccess(origin) ? origin.payload : undefined;
-export const errorOrUndefined = (origin: Async<unknown>): Error | undefined =>
-  origin && isError(origin) ? origin.error : undefined;
+): Payload | undefined => (isSuccess(origin) ? origin.payload : undefined);
 
-export const invalidate = <Payload>(
-  origin: SuccessAsync<Payload>,
-): SuccessAsync<Payload> =>
-  origin.invalidated ? origin : { ...origin, invalidated: true };
+export const getError = (origin: Async<unknown>): Error | undefined =>
+  isError(origin) ? origin.error : undefined;
 
-export const invalidateOrSetInProgress = <Payload>(
+export const setInProgressOrInvalidated = <Payload>(
   origin: Async<Payload>,
 ): InProgressAsync | SuccessAsync<Payload> =>
-  isSuccess(origin) ? invalidate(origin) : inProgress();
+  isSuccess(origin) ? { ...origin, invalidated: true } : newInProgress();
 
-export const mapSuccess = <P1, P2>(
-  origin: SuccessAsync<P1>,
-  mapper: (payload: P1) => P2,
-  invalidated?: boolean,
-): SuccessAsync<P2> =>
-  success(
-    mapper(origin.payload),
-    invalidated != null ? invalidated : origin.invalidated,
-  );
-
-export const mapIfSuccess = <Payload1, Payload2>(
+export const map = <Payload1, Payload2>(
   origin: Async<Payload1>,
   mapper: (payload: Payload1) => Payload2,
   invalidated?: boolean,
 ): Async<Payload2> =>
   isSuccess(origin)
-    ? mapSuccess(
-        origin,
-        mapper,
-        invalidated != null ? invalidated : origin.invalidated,
+    ? newSuccess(
+        mapper(origin.payload),
+        invalidated !== undefined ? invalidated : origin.invalidated,
       )
     : origin;
 
-export const renderIfSuccessOrNull = <Payload>(
-  origin: Async<Payload>,
-  renderSuccess: (payload: Payload, invalidated?: boolean) => ReactNode,
-): ReactNode | null =>
-  isSuccess(origin) ? renderSuccess(origin.payload, origin.invalidated) : null;
-export const renderIfErrorOrNull = <Payload>(
-  origin: Async<Payload>,
-  renderError: (error: Error) => ReactNode,
-): ReactNode | null => (isError(origin) ? renderError(origin.error) : null);
+//
+// More elaborate helpers
+//
 
 export const render = <Payload>(
   origin: Async<Payload>,
-  renderInit: (() => ReactNode) | null,
-  renderInProgress: (() => ReactNode) | null,
-  renderSuccess:
-    | ((payload: Payload, invalidated?: boolean) => ReactNode)
-    | null,
-  renderError: ((error: Error) => ReactNode) | null,
+  render: {
+    init?: () => ReactNode;
+    inProgress?: () => ReactNode;
+    success?: (payload: Payload, invalidated?: boolean) => ReactNode;
+    error?: (error: Error) => ReactNode;
+  },
 ): ReactNode => {
   switch (origin.progress) {
     case Progress.Init:
-      return renderInit && renderInit();
+      return render.init ? render.init() : null;
     case Progress.InProgress:
-      return renderInProgress && renderInProgress();
+      return render.inProgress ? render.inProgress() : null;
     case Progress.Success:
-      return renderSuccess && renderSuccess(origin.payload, origin.invalidated);
+      return render.success
+        ? render.success(origin.payload, origin.invalidated)
+        : null;
     case Progress.Error:
-      return renderError && renderError(origin.error);
+      return render.error ? render.error(origin.error) : null;
   }
 };
 
@@ -168,17 +146,17 @@ export async function task<Payload>(
   }: AsyncTaskOptions<Payload> = {},
 ): Promise<void> {
   callback(
-    currentState ? invalidateOrSetInProgress(currentState) : inProgress(),
+    currentState ? setInProgressOrInvalidated(currentState) : newInProgress(),
   );
   onChange && onChange();
   try {
     const result = await asyncFunction();
-    callback(success(result));
+    callback(newSuccess(result));
     onChange && onChange();
     onSuccess && onSuccess(result);
-  } catch (err) {
-    callback(error(err));
+  } catch (error) {
+    callback(newError(error));
     onChange && onChange();
-    onError && onError(err);
+    onError && onError(error);
   }
 }

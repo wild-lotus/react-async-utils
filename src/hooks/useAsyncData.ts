@@ -19,12 +19,15 @@ export function useAsyncData<Payload, Args extends unknown[]>(
   }: AsyncDataOptions<Payload, Args> = {},
   deps?: unknown[],
 ): [Async<Payload>, (...args: Args) => Promise<void>, () => void] {
-  const [asyncData, setAsyncData] = useState<Async<Payload>>(async.init());
+  const [asyncData, setAsyncData] = useState<Async<Payload>>(async.newInit());
+
   const asyncDataRef = useRef(asyncData);
+
   const reset = useCallback(() => {
-    setAsyncData(async.init());
+    setAsyncData(async.newInit());
     onChange && onChange();
-  }, deps || [onChange]);
+  }, deps || [onChange]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const trigger = useMemo(
     () => async (...args: Args) =>
       await async.task(() => getData(...args), setAsyncData, {
@@ -33,13 +36,16 @@ export function useAsyncData<Payload, Args extends unknown[]>(
         onError,
         onSuccess,
       }),
-    deps || [getData, onChange, onError, onSuccess],
+    deps || [onChange, onError, onSuccess], // eslint-disable-line react-hooks/exhaustive-deps
   );
+
   useEffect(() => {
     asyncDataRef.current = asyncData;
   }, [asyncData]);
+
   useEffect(() => {
     autoTriggerWith && trigger(...autoTriggerWith);
-  }, deps || [autoTriggerWith, trigger]);
+  }, deps || [autoTriggerWith, trigger]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return [asyncData, trigger, reset];
 }

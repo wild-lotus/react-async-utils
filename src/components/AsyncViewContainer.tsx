@@ -5,10 +5,10 @@ import { Async } from '../types';
 interface PropsSingle {
   asyncData: Async<unknown>;
   loadingRender: () => ReactNode;
-  loadingRenderBeforeContent?: boolean;
+  setLoadingRenderBeforeChildren?: boolean;
   forceLoading?: boolean;
   errorRender: (error: Error) => ReactNode;
-  errorRenderBeforeContent?: boolean;
+  setErrorRenderBeforeChildren?: boolean;
   forceError?: Error;
   children: ReactNode;
 }
@@ -16,10 +16,10 @@ interface PropsSingle {
 interface PropsMulti {
   asyncData: Async<unknown>[];
   loadingRender: () => ReactNode | null;
-  loadingRenderBeforeContent?: boolean;
+  setLoadingRenderBeforeChildren?: boolean;
   forceLoading?: boolean;
   errorRender: (errors: Error[]) => ReactNode | null;
-  errorRenderBeforeContent?: boolean;
+  setErrorRenderBeforeChildren?: boolean;
   forceError?: Error[];
   children: ReactNode;
 }
@@ -29,10 +29,10 @@ type Props = PropsSingle | PropsMulti;
 export const AsyncViewContainer = memo(function AsyncViewWrapper2({
   asyncData,
   loadingRender,
-  loadingRenderBeforeContent = false,
+  setLoadingRenderBeforeChildren = false,
   forceLoading,
   errorRender,
-  errorRenderBeforeContent = false,
+  setErrorRenderBeforeChildren = false,
   forceError,
   children,
 }: Props) {
@@ -45,30 +45,30 @@ export const AsyncViewContainer = memo(function AsyncViewWrapper2({
     forceError ||
     (Array.isArray(asyncData)
       ? asyncData.filter(async.isError).map(ad => ad.error)
-      : async.errorOrUndefined(asyncData));
+      : async.getError(asyncData));
   return (
     <>
       {error &&
       (!Array.isArray(error) || error.length > 0) &&
       errorRender &&
-      errorRenderBeforeContent
+      setErrorRenderBeforeChildren
         ? (errorRender as (error: Error | Error[]) => ReactNode)(error)
         : null}
 
-      {loading && loadingRender && loadingRenderBeforeContent
+      {loading && loadingRender && setLoadingRenderBeforeChildren
         ? loadingRender()
         : null}
 
       {children}
 
-      {loading && loadingRender && !loadingRenderBeforeContent
+      {loading && loadingRender && !setLoadingRenderBeforeChildren
         ? loadingRender()
         : null}
 
       {error &&
       (!Array.isArray(error) || error.length > 0) &&
       errorRender &&
-      errorRenderBeforeContent
+      setErrorRenderBeforeChildren
         ? (errorRender as (error: Error | Error[]) => ReactNode)(error)
         : null}
     </>
