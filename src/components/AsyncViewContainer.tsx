@@ -15,10 +15,10 @@ interface PropsSingle {
 
 interface PropsMulti {
   asyncData: Async<unknown>[];
-  loadingRender: () => ReactNode;
+  loadingRender: () => ReactNode | null;
   loadingRenderBeforeContent?: boolean;
   forceLoading?: boolean;
-  errorRender: (errors: Error[]) => ReactNode;
+  errorRender: (errors: Error[]) => ReactNode | null;
   errorRenderBeforeContent?: boolean;
   forceError?: Error[];
   children: ReactNode;
@@ -50,18 +50,24 @@ export const AsyncViewContainer = memo(function AsyncViewWrapper2({
     <>
       {error &&
       (!Array.isArray(error) || error.length > 0) &&
+      errorRender &&
       errorRenderBeforeContent
         ? (errorRender as (error: Error | Error[]) => ReactNode)(error)
         : null}
 
-      {loading && loadingRenderBeforeContent ? loadingRender() : null}
+      {loading && loadingRender && loadingRenderBeforeContent
+        ? loadingRender()
+        : null}
 
       {children}
 
-      {loading && !loadingRenderBeforeContent ? loadingRender() : null}
+      {loading && loadingRender && !loadingRenderBeforeContent
+        ? loadingRender()
+        : null}
 
       {error &&
       (!Array.isArray(error) || error.length > 0) &&
+      errorRender &&
       errorRenderBeforeContent
         ? (errorRender as (error: Error | Error[]) => ReactNode)(error)
         : null}

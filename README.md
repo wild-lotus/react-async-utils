@@ -146,7 +146,7 @@ function MyComponent({ asyncPerson }) {
 }
 ```
 
-BONUS: `asyncData` prop from `AsyncViewContainer` accepts an array of `Async<Data>` (I know, Suspense...)
+BONUS: `asyncData` prop from `AsyncViewContainer` accepts an array of `Async<Data>`:
 
 ```javascript
 function MyComponent({ asyncPerson }) {
@@ -180,13 +180,27 @@ const triggerButton = (
 
 You can call `triggerAsyncData` many times with different args.
 
+### Autotrigger
+
 You can also trigger the async process automatically after the first render, providing an array of args to the `autoTriggerWith` option:
 
 ```javascript
-const [asyncData] = useAsyncData(getData, { autoTriggerWith: [] });
+const [asyncData] = useAsyncData(getData, { autoTriggerWith: [] }, []);
 ```
 
-ADVANCED: for the sake of simplicity, `useAsyncData` args are captured on the first render, and never considered again.
+These array will be the parameters to be used when calling `getData`. We will explain this also new third parameter now.
+
+### useAsyncData effects
+
+`useAsyncData` parameters affect in 2 relevant ways:
+
+1. Identity of returned `triggerAsyncData` function.
+2. Autotriggering effect.
+
+This can be controlled like this:
+
+- Same 2 first parameters (no inline functions or literal objects or arrays) make the hook provide the same `triggerAsyncData` and no extra autotriggers. Different 2 first parameters will make the hook provide a new `triggerAsyncData` everytime and possible autotriggers if `autoTriggerWith` is included. These 2 first parameters are the dependencies of the hook.
+- If provided, an extra 3rd parameter overrides these dependencies on the 2 first parameters. The 3rd parameter will be an array of dependencies, which will be taken into account instead of the first 2 parameters for the aforementioned effects.
 
 # API Reference (WIP)
 
