@@ -1,3 +1,10 @@
+## 0.7.1 (Mar 1, 2019)
+
+### New features
+
+- `useAsyncData` hook now accepts a 3rd parameter as dependencies for the hook, overriding the first 2 parameters as dependencies.
+- `AsyncViewContainer` render props accept `null` to render nothing.
+
 ## 0.7.0 (Feb 28, 2019)
 
 ### Breaking changes
