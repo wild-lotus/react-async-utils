@@ -4,9 +4,9 @@ import { Async } from '../types';
 
 interface PropsSingle {
   asyncData: Async<unknown>;
-  loadingRender: () => ReactNode;
-  setLoadingRenderBeforeChildren?: boolean;
-  forceLoading?: boolean;
+  inProgressRender: () => ReactNode;
+  setInProgressRenderBeforeChildren?: boolean;
+  forceInProgress?: boolean;
   errorRender: (error: Error) => ReactNode;
   setErrorRenderBeforeChildren?: boolean;
   forceError?: Error;
@@ -15,9 +15,9 @@ interface PropsSingle {
 
 interface PropsMulti {
   asyncData: Async<unknown>[];
-  loadingRender: () => ReactNode | null;
-  setLoadingRenderBeforeChildren?: boolean;
-  forceLoading?: boolean;
+  inProgressRender: () => ReactNode | null;
+  setInProgressRenderBeforeChildren?: boolean;
+  forceInProgress?: boolean;
   errorRender: (errors: Error[]) => ReactNode | null;
   setErrorRenderBeforeChildren?: boolean;
   forceError?: Error[];
@@ -28,16 +28,16 @@ type Props = PropsSingle | PropsMulti;
 
 export const AsyncViewContainer = memo(function AsyncViewWrapper2({
   asyncData,
-  loadingRender,
-  setLoadingRenderBeforeChildren = false,
-  forceLoading,
+  inProgressRender,
+  setInProgressRenderBeforeChildren = false,
+  forceInProgress,
   errorRender,
   setErrorRenderBeforeChildren = false,
   forceError,
   children,
 }: Props) {
-  const loading =
-    forceLoading ||
+  const inProgress =
+    forceInProgress ||
     (Array.isArray(asyncData)
       ? async.isAnyInProgressOrInvalidated(...asyncData)
       : async.isInProgressOrInvalidated(asyncData));
@@ -55,14 +55,14 @@ export const AsyncViewContainer = memo(function AsyncViewWrapper2({
         ? (errorRender as (error: Error | Error[]) => ReactNode)(error)
         : null}
 
-      {loading && loadingRender && setLoadingRenderBeforeChildren
-        ? loadingRender()
+      {inProgress && inProgressRender && setInProgressRenderBeforeChildren
+        ? inProgressRender()
         : null}
 
       {children}
 
-      {loading && loadingRender && !setLoadingRenderBeforeChildren
-        ? loadingRender()
+      {inProgress && inProgressRender && !setInProgressRenderBeforeChildren
+        ? inProgressRender()
         : null}
 
       {error &&

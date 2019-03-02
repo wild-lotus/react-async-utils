@@ -129,7 +129,7 @@ export const render = <Payload>(
 };
 
 interface AsyncTaskOptions<Payload> {
-  currentState?: Async<Payload> | undefined;
+  currentAsync?: Async<Payload> | undefined;
   onChange?: (() => void) | undefined;
   onSuccess?: ((payload: Payload) => void) | undefined;
   onError?: ((error: Error) => void) | undefined;
@@ -139,14 +139,14 @@ export async function task<Payload>(
   asyncFunction: () => Promise<Payload>,
   callback: (asyncData: Async<Payload>) => void,
   {
-    currentState,
+    currentAsync,
     onChange,
     onSuccess,
     onError,
   }: AsyncTaskOptions<Payload> = {},
 ): Promise<void> {
   callback(
-    currentState ? setInProgressOrInvalidated(currentState) : newInProgress(),
+    currentAsync ? setInProgressOrInvalidated(currentAsync) : newInProgress(),
   );
   onChange && onChange();
   try {
