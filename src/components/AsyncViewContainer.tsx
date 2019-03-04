@@ -4,22 +4,22 @@ import { Async } from '../types';
 
 interface PropsSingle {
   asyncData: Async<unknown>;
-  loadingRender: () => ReactNode;
-  loadingRenderBeforeContent?: boolean;
-  forceLoading?: boolean;
+  inProgressRender: () => ReactNode;
+  setInProgressRenderBeforeChildren?: boolean;
+  forceInProgress?: boolean;
   errorRender: (error: Error) => ReactNode;
-  errorRenderBeforeContent?: boolean;
+  setErrorRenderBeforeChildren?: boolean;
   forceError?: Error;
   children: ReactNode;
 }
 
 interface PropsMulti {
   asyncData: Async<unknown>[];
-  loadingRender: () => ReactNode | null;
-  loadingRenderBeforeContent?: boolean;
-  forceLoading?: boolean;
+  inProgressRender: () => ReactNode | null;
+  setInProgressRenderBeforeChildren?: boolean;
+  forceInProgress?: boolean;
   errorRender: (errors: Error[]) => ReactNode | null;
-  errorRenderBeforeContent?: boolean;
+  setErrorRenderBeforeChildren?: boolean;
   forceError?: Error[];
   children: ReactNode;
 }
@@ -28,16 +28,16 @@ type Props = PropsSingle | PropsMulti;
 
 export const AsyncViewContainer = memo(function AsyncViewWrapper2({
   asyncData,
-  loadingRender,
-  loadingRenderBeforeContent = false,
-  forceLoading,
+  inProgressRender,
+  setInProgressRenderBeforeChildren = false,
+  forceInProgress,
   errorRender,
-  errorRenderBeforeContent = false,
+  setErrorRenderBeforeChildren = false,
   forceError,
   children,
 }: Props) {
-  const loading =
-    forceLoading ||
+  const inProgress =
+    forceInProgress ||
     (Array.isArray(asyncData)
       ? async.isAnyInProgressOrInvalidated(...asyncData)
       : async.isInProgressOrInvalidated(asyncData));
@@ -45,30 +45,30 @@ export const AsyncViewContainer = memo(function AsyncViewWrapper2({
     forceError ||
     (Array.isArray(asyncData)
       ? asyncData.filter(async.isError).map(ad => ad.error)
-      : async.errorOrUndefined(asyncData));
+      : async.getError(asyncData));
   return (
     <>
       {error &&
       (!Array.isArray(error) || error.length > 0) &&
       errorRender &&
-      errorRenderBeforeContent
+      setErrorRenderBeforeChildren
         ? (errorRender as (error: Error | Error[]) => ReactNode)(error)
         : null}
 
-      {loading && loadingRender && loadingRenderBeforeContent
-        ? loadingRender()
+      {inProgress && inProgressRender && setInProgressRenderBeforeChildren
+        ? inProgressRender()
         : null}
 
       {children}
 
-      {loading && loadingRender && !loadingRenderBeforeContent
-        ? loadingRender()
+      {inProgress && inProgressRender && !setInProgressRenderBeforeChildren
+        ? inProgressRender()
         : null}
 
       {error &&
       (!Array.isArray(error) || error.length > 0) &&
       errorRender &&
-      errorRenderBeforeContent
+      setErrorRenderBeforeChildren
         ? (errorRender as (error: Error | Error[]) => ReactNode)(error)
         : null}
     </>

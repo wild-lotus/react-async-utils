@@ -6,26 +6,33 @@
 <a href="https://github.com/CarlosGines/react-async-utils/blob/master/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/carlosgines/react-async-utils.svg"></a>
 <img alt="GitHub top language" src="https://img.shields.io/github/languages/top/carlosgines/react-async-utils.svg">
 </p>
-Collection of utils to work with asynchronous data in React. It especially shines when used with TypeScript, but it can be used with JavaScript.
+
+Collection of utils to work with asynchronous data and processes in React, featuring an especially useful `useAsyncData` hook. It is delightful to use with TypeScript, but it can equally be used with JavaScript.
 
 # Table of Contents
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [The problem](#the-problem)
 - [This solution](#this-solution)
 - [Installation](#installation)
-- [Usage](#usage)
-  - [ The 4 basic states](#the-4-basic-states)
+- [The new Async Data concept](#the-new-async-data-concept)
+  - [The 4 basic states](#the-4-basic-states)
+  - [useAsyncData hook](#useasyncdata-hook)
+    - [Auto-trigger effect](#auto-trigger-effect)
   - [Rendering Async Data](#rendering-async-data)
     - [render](#render)
-    - [AsyncViewContainer](#AsyncViewContainer)
-  - [useAsyncData hook](#useAsyncData-hook)
-- [API Reference (WIP)](<#api-reference-(wip)>)
+    - [AsyncViewContainer](#asyncviewcontainer)
+- [API Reference (WIP)](#api-reference-wip)
 - [Contributing](#contributing)
 - [LICENSE](#license)
 
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # The problem
 
-Dealing with asynchronous data usually results in using a combination of variables/properties to keep track of the possible states:
+Dealing with asynchronous data is usually an imperative process, harder to express in a declarative manner, such as React promotes. It usually results in using a combination of variables/properties to keep track of the possible states:
 
 ```javascript
 let loading;
@@ -35,27 +42,31 @@ let invalidated;
 ...
 ```
 
-This a somehow complex construct for such an ubiquitous case. It can lead to verbose code, even more when dealing with multiple pieces of async data at the same time. On top of that, you probably need to repeat that "boilerplate" a lot in your app.
+This a somehow complex construct for such an ubiquitous case. It can lead to verbose code, even more when dealing with multiple pieces of async data at the same time. Some of these combinations don't even make sense (`loading === true && error != null`?).
 
-Plus, some of this combinations don't make sense (`loading === true && error != null`?) and so it can feel awkward to follow this pattern.
+So, it can feel awkward to follow this pattern. And you probably need to repeat that "boilerplate" a lot in your app.
 
 # This solution
 
 The base of this library is "[making impossible states impossible](https://blog.kentcdodds.com/make-impossible-states-impossible-cf85b97795c1)" for async data, and building abstractions around it.
 
-We do not separate the data itself from its asynchronous state, we consider it an intrinsic part of its nature. And so we put it all together as an object consistent with this async nature.
+We do not separate the data itself from its asynchronous state, we consider it an intrinsic part of its nature. And so we put it all together as an data type consistent with this async nature.
 
-We named it an `Async` type object
+We named it `Async` data.
 
 ```typescript
 let asyncPerson: Async<Person>;
 ```
 
-This leads us to some powerful abstractions like the `useAsyncData` custom hook:
+It can be considered the declarative counterpart of a `Promise`.
 
-```javascript
-const [asyncData, triggerAsyncData] = useAsyncData(getData);
+This new data type allows us to create some powerful abstractions like the `useAsyncData` custom hook
+
+```typescript
+const [asyncPerson, triggerAsyncPerson] = useAsyncData(getPersonPromise);
 ```
+
+which we will explain further down.
 
 # Installation
 
@@ -63,81 +74,137 @@ const [asyncData, triggerAsyncData] = useAsyncData(getData);
 npm install react-async-utils
 ```
 
-# Usage
+# The new Async Data concept
 
-## The 4 basic states
+We are going to deal with async data in all of its possible states as a single entity. This entity includes all possible states and related data within it, in an ordered (and type-safe) manner.
 
-We consider any async data can exist in one of this 4 states:
+## The 4 basic states of Async Data
 
-```javascript
-import { async } from 'react-async-utls';
+We consider any Async Data can exist in one of this 4 states:
 
-// Async process not started:
-asyncPerson = async.init();
+- **INIT**: nothing has happened yet. This is time 0 of our async process:
 
-// Async process in progress:
-asyncPerson = async.inProgress();
-
-// Async process successfully completed:
-asyncPerson = async.success({ name: 'Charlie' });
-consoe.log(asyncPerson.payload); // { name: 'Charlie' }
-
-// Async process failed:
-asyncPerson = async.error(new Error('Bad stuff'));
-consoe.log(asyncPerson.error.message); // 'Bad stuff'
+```typescript
+interface InitAsync {
+  progress: Progress.Init;
+}
 ```
 
-BONUS: The successful state can also express an `invalidated` state:
+- **IN PROGRESS**: our async process is happening. We are waiting for its outcome:
 
-```javascript
-asyncPerson = async.success({ name: 'Charlie' }, true);
-consoe.log(asyncPerson.invalidated); // true
+```typescript
+interface InProgressAsync {
+  progress: Progress.InProgress;
+}
 ```
 
-We can query the async state of our data with these functions:
+- **SUCCESS**: our async process is successfully completed. The actual data will be available in its **payload**:
 
-```javascript
-async.isInit(asyncPerson);
-async.isInProgress(asyncPerson);
-async.isSuccess(asyncPerson);
-async.isValidSuccess(asyncPerson);
-async.isInvalidated(asyncPerson);
-async.isInProgressOrInvalidated(asyncPerson);
-async.isError(asyncPerson);
+```typescript
+interface SuccessAsync<Payload> {
+  progress: Progress.Success;
+  payload: Payload;
+  invalidated?: boolean;
+}
 ```
+
+A successful Async can also be **invalidated**, meaning its current payload is stale and we should receive a new one.
+
+- **ERROR**: our async process failed. There will be an **error**, the cause of this failure:
+
+```typescript
+interface ErrorAsync {
+  progress: Progress.Error;
+  error: Error;
+}
+```
+
+And so, an Async Data encapsulates the 4 states of a piece of data along the async process within a single data type:
+
+```typescript
+export type Async<Payload> =
+  | InitAsync
+  | InProgressAsync
+  | SuccessAsync<Payload>
+  | ErrorAsync;
+```
+
+This data type is the base of our library. Take your time to understand it, and we will be able to do great things with it.
+
+## useAsyncData hook
+
+A powerful abstraction to manage the whole async process in a declarative way:
+
+```typescript
+const [asyncPerson, triggerAsyncPerson] = useAsyncData(getPersonPromise);
+
+const triggerButton = (
+  <button onClick={e => triggerAsyncPerson(personId)}>Get that person!</button>
+);
+```
+
+- **`getPersonPromise`**: input function that returns a `Promise`.
+- **`asyncPerson`**: it is our Async Data. It will be in `init` state at the beginning, but will get updated when it is triggered.
+- **`triggerAsyncPerson`**: a function that will call `getPersonPromise` when invoked, using the given args, and it will update `asyncPerson` state according to the returned `Promise` state.
+
+You can call the same `triggerAsyncPerson` as many times as needed even with different args.
+
+### Auto-trigger effect
+
+You can also trigger the async process automatically after the first render, providing an `autoTriggerWith` option with an array of args for the input function:
+
+```typescript
+const [asyncPerson] = useAsyncData(
+  getPersonPromise,
+  { autoTriggerWith: [personId] },
+  [personId],
+);
+```
+
+The third parameter is the dependencies for the auto-trigger effect. Any change in the dependenies will cause the auto-trigger to happen again (just like `useEffect`, which used for this effect and receives these dependencies).
+
+<hr/>
+
+You can combine using both _auto-trigger effect_ and _trigger function_.
+
+For example: you auto-trigger fetching a paginated list of people on first render. Then you "manually" trigger it again with different args, according to user input, to filter the list or change page.
 
 ## Rendering Async Data
 
 ### render
 
-A good option is the `render` helper method. One render method per state, with any React node as return type:
+A good option is the `render` helper method. You can provide a render method per state. The corresponding one will be used:
 
-```javascript
-import { async } from 'react-async-utls';
+```tsx
+import { render } from 'react-async-utls';
 
-async.render(
-  asyncPerson,
-  () => 'Init state render. Nothing happened.',
-  () => 'In Progress state render. We are fetching our Person.',
-  (person, invalidated) =>
-    `Successful state render. Please welcome ${person.name}!`,
-  error => `Error state render. Something went wrong: ${error.message}`,
-);
+render(asyncPerson, {
+  init: () => <p>Init state render. Nothing happened yet.</p>,
+  inProgress: () => (
+    <p>In Progress state render. We are fetching our Person.</p>
+  ),
+  success: (person, invalidated) => (
+    <p>{`Successful state render. Please welcome ${person.name}!`}</p>
+  ),
+  error: error => (
+    <p>{`Error state render. Something went wrong: ${error.message}`}</p>
+  ),
+});
 ```
 
 ### AsyncViewContainer
 
-Another option is the `AsyncViewContainer` component, which always displays its children:
+Another option is the `AsyncViewContainer` component:
 
-```javascript
-import { async, AsyncViewContainer } from 'react-async-utls';
+```tsx
+import { AsyncViewContainer, getPayload } from 'react-async-utls';
 
 function MyComponent({ asyncPerson }) {
-  person = async.payloadOrUndefined(asyncPerson);
+  person = getPayload(asyncPerson);
   return (
     <AsyncViewContainer
       asyncData={asyncPerson}
-      loadingRender={() => 'Loading...'}
+      inProgressRender={() => 'Loading person...'}
       errorRender={error => `Something went wrong: ${error.message}`}
     >
       {person ? <FancyPerson person={person} /> : 'No Data'}
@@ -146,61 +213,25 @@ function MyComponent({ asyncPerson }) {
 }
 ```
 
-BONUS: `asyncData` prop from `AsyncViewContainer` accepts an array of `Async<Data>`:
+Apart from its children, it will render the render method corresponding to the Async Data state.
 
-```javascript
+BONUS: `AsyncViewContainer` accepts an array of `Async<Data>` at the prop `asyncData`:
+
+```tsx
 function MyComponent({ asyncPerson }) {
   return (
     <AsyncViewContainer
-      asyncData={[asyncProfile, asyncContacts]}
-      loadingRender={() => 'Loading...'}
+      asyncData={[asyncProfile, asyncContacts, asyncNotifications]}
+      inProgressRender={() => 'Loading stuff...'}
       errorRender={errors => errors.map(error => error.message).join(' AND ')}
     >
-      ...
+      // ...
     </AsyncViewContainer>
   );
 }
 ```
 
-## useAsyncData hook
-
-A powerful abstraction to manage the whole async process:
-
-```javascript
-const [asyncData, triggerAsyncData] = useAsyncData(getData);
-
-const triggerButton = (
-  <button onClick={event => triggerAsyncData()}>Trigger it!</button>
-);
-```
-
-`getData` must be a function with whatever args that returns a Promise.
-
-`asyncData` will start in `init` state. When you `triggerAsyncData`,it will be updated to `inProgress`, and then to `success` or `error` states as the promise is resolved or rejected.
-
-You can call `triggerAsyncData` many times with different args.
-
-### Autotrigger
-
-You can also trigger the async process automatically after the first render, providing an array of args to the `autoTriggerWith` option:
-
-```javascript
-const [asyncData] = useAsyncData(getData, { autoTriggerWith: [] }, []);
-```
-
-These array will be the parameters to be used when calling `getData`. We will explain this also new third parameter now.
-
-### useAsyncData effects
-
-`useAsyncData` parameters affect in 2 relevant ways:
-
-1. Identity of returned `triggerAsyncData` function.
-2. Autotriggering effect.
-
-This can be controlled like this:
-
-- Same 2 first parameters (no inline functions or literal objects or arrays) make the hook provide the same `triggerAsyncData` and no extra autotriggers. Different 2 first parameters will make the hook provide a new `triggerAsyncData` everytime and possible autotriggers if `autoTriggerWith` is included. These 2 first parameters are the dependencies of the hook.
-- If provided, an extra 3rd parameter overrides these dependencies on the 2 first parameters. The 3rd parameter will be an array of dependencies, which will be taken into account instead of the first 2 parameters for the aforementioned effects.
+It will render the corresponding render method if _any_ Async Data is on that state.
 
 # API Reference (WIP)
 

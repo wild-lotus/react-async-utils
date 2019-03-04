@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
-import * as async from '../helpers';
+import { useEffect, useState, useRef } from 'react';
+import { newInit, task } from '../helpers';
 import { Async } from '../types';
 
 export interface AsyncDataOptions<Payload, Args extends unknown[]> {
@@ -7,6 +7,14 @@ export interface AsyncDataOptions<Payload, Args extends unknown[]> {
   onChange?: () => void;
   onSuccess?: (payload: Payload) => void;
   onError?: (error: Error) => void;
+}
+
+function usePrevious<T>(value: T): T | undefined {
+  const valueRef = useRef<T | undefined>(undefined);
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
+  return valueRef.current;
 }
 
 export function useAsyncData<Payload, Args extends unknown[]>(
@@ -19,27 +27,34 @@ export function useAsyncData<Payload, Args extends unknown[]>(
   }: AsyncDataOptions<Payload, Args> = {},
   deps?: unknown[],
 ): [Async<Payload>, (...args: Args) => Promise<void>, () => void] {
-  const [asyncData, setAsyncData] = useState<Async<Payload>>(async.init());
-  const asyncDataRef = useRef(asyncData);
-  const reset = useCallback(() => {
-    setAsyncData(async.init());
+  const [asyncData, setAsyncData] = useState<Async<Payload>>(newInit());
+
+  const resetAsyncData = (): void => {
+    setAsyncData(newInit());
     onChange && onChange();
-  }, deps || [onChange]);
-  const trigger = useMemo(
-    () => async (...args: Args) =>
-      await async.task(() => getData(...args), setAsyncData, {
-        currentState: asyncDataRef.current,
-        onChange,
-        onError,
-        onSuccess,
-      }),
-    deps || [getData, onChange, onError, onSuccess],
-  );
+  };
+
+  const triggerAsyncData = async (...args: Args): Promise<void> =>
+    await task(() => getData(...args), setAsyncData, {
+      currentAsync: asyncData,
+      onChange,
+      onSuccess,
+      onError,
+    });
+
+  const prevAsyncData = usePrevious(asyncData);
+
   useEffect(() => {
-    asyncDataRef.current = asyncData;
-  }, [asyncData]);
-  useEffect(() => {
-    autoTriggerWith && trigger(...autoTriggerWith);
-  }, deps || [autoTriggerWith, trigger]);
-  return [asyncData, trigger, reset];
+    if (prevAsyncData && asyncData !== prevAsyncData) {
+      // eslint-disable-next-line no-console
+      console.error(
+        'Infinite loop catched at `useAsyncData` auto-trigger effect. Use `useAsyncData` 3rd argument to explicitly control the dependencies of this effect.',
+      );
+      return;
+    }
+    autoTriggerWith && triggerAsyncData(...autoTriggerWith);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps || [autoTriggerWith, getData, onChange, onError, onSuccess]);
+
+  return [asyncData, triggerAsyncData, resetAsyncData];
 }
