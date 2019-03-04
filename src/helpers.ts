@@ -102,7 +102,7 @@ export const map = <Payload1, Payload2>(
     : origin;
 
 //
-// More elaborate helpers
+// Higher level helpers
 //
 
 export const render = <Payload>(
