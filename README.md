@@ -7,7 +7,7 @@
 <img alt="GitHub top language" src="https://img.shields.io/github/languages/top/carlosgines/react-async-utils.svg">
 </p>
 
-Collection of utils to work with asynchronous data and processes in React, featuring an especially useful `useAsyncData` hook. It is delightful to use with TypeScript, but it can equally be used with JavaScript.
+Collection of utils to work with asynchronous data in React in a more declarative way. Featuring an especially useful `useAsyncData` hook. It is delightful to use with TypeScript, but it can equally be used with JavaScript.
 
 # Table of Contents
 
