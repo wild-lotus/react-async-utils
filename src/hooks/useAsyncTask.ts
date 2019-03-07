@@ -9,7 +9,7 @@ export interface AsyncDataOptions<Payload, Args extends unknown[]> {
   onError?: (error: Error) => void;
 }
 
-export function useAsyncData<Payload, Args extends unknown[]>(
+export function useAsyncTask<Payload, Args extends unknown[]>(
   getData: (...args: Args) => Promise<Payload>,
   {
     autoTriggerWith,

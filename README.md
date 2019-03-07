@@ -7,7 +7,7 @@
 <img alt="GitHub top language" src="https://img.shields.io/github/languages/top/carlosgines/react-async-utils.svg">
 </p>
 
-Collection of utils to work with asynchronous data in React in a more declarative way. Featuring an especially useful `useAsyncData` hook. It is delightful to use with TypeScript, but it can equally be used with JavaScript.
+Collection of utils to work with asynchronous data in React in a more declarative way. Featuring an especially useful `useAsyncTask` hook. It is delightful to use with TypeScript, but it can equally be used with JavaScript.
 
 # Table of Contents
 
@@ -18,8 +18,8 @@ Collection of utils to work with asynchronous data in React in a more declarativ
 - [This solution](#this-solution)
 - [Installation](#installation)
 - [The new Async Data concept](#the-new-async-data-concept)
-  - [The 4 basic states](#the-4-basic-states)
-  - [useAsyncData hook](#useasyncdata-hook)
+  - [The 4 basic states of Async Data](#the-4-basic-states-of-async-data)
+  - [useAsyncTask hook](#useasynctask-hook)
     - [Auto-trigger effect](#auto-trigger-effect)
   - [Rendering Async Data](#rendering-async-data)
     - [render](#render)
@@ -50,9 +50,9 @@ So, it can feel awkward to follow this pattern. And you probably need to repeat 
 
 The base of this library is "[making impossible states impossible](https://blog.kentcdodds.com/make-impossible-states-impossible-cf85b97795c1)" for async data, and building abstractions around it.
 
-We do not separate the data itself from its asynchronous state, we consider it an intrinsic part of its nature. And so we put it all together as an data type consistent with this async nature.
+We do not separate the data itself from its asynchronous state, we consider it an intrinsic part of its nature. And so we put it all together as a new data type consistent with this async nature.
 
-We named it `Async` data.
+We named this data type `Async`.
 
 ```typescript
 let asyncPerson: Async<Person>;
@@ -60,10 +60,10 @@ let asyncPerson: Async<Person>;
 
 It can be considered the declarative counterpart of a `Promise`.
 
-This new data type allows us to create some powerful abstractions like the `useAsyncData` custom hook
+This new data type allows us to create some powerful abstractions like the `useAsyncTask` custom hook
 
 ```typescript
-const [asyncPerson, triggerAsyncPerson] = useAsyncData(getPersonPromise);
+const [asyncPerson, triggerAsyncPersonTask] = useAsyncTask(getPersonPromise);
 ```
 
 which we will explain further down.
@@ -131,30 +131,32 @@ export type Async<Payload> =
 
 This data type is the base of our library. Take your time to understand it, and we will be able to do great things with it.
 
-## useAsyncData hook
+## useAsyncTask hook
 
 A powerful abstraction to manage the whole async process in a declarative way:
 
 ```typescript
-const [asyncPerson, triggerAsyncPerson] = useAsyncData(getPersonPromise);
+const [asyncPerson, triggerAsyncPersonTask] = useAsyncTask(getPersonPromise);
 
 const triggerButton = (
-  <button onClick={e => triggerAsyncPerson(personId)}>Get that person!</button>
+  <button onClick={e => triggerAsyncPersonTask(personId)}>
+    Get me that person!
+  </button>
 );
 ```
 
 - **`getPersonPromise`**: input function that returns a `Promise`.
 - **`asyncPerson`**: it is our Async Data. It will be in `init` state at the beginning, but will get updated when it is triggered.
-- **`triggerAsyncPerson`**: a function that will call `getPersonPromise` when invoked, using the given args, and it will update `asyncPerson` state according to the returned `Promise` state.
+- **`triggerAsyncPersonTask`**: a function that will call `getPersonPromise` when invoked, using the given args, and it will update `asyncPerson` state according to the returned `Promise` state.
 
-You can call the same `triggerAsyncPerson` as many times as needed even with different args.
+You can call the same `triggerAsyncPersonTask` as many times as needed even with different args.
 
 ### Auto-trigger effect
 
-You can also trigger the async process automatically after the first render, providing an `autoTriggerWith` option with an array of args for the input function:
+You can also trigger the async task automatically after the first render, providing an `autoTriggerWith` option with an array of args for the input function:
 
 ```typescript
-const [asyncPerson] = useAsyncData(
+const [asyncPerson] = useAsyncTask(
   getPersonPromise,
   { autoTriggerWith: [personId] },
   [personId],
@@ -165,9 +167,9 @@ The third parameter is the dependencies for the auto-trigger effect. Any change 
 
 <hr/>
 
-You can combine using both _auto-trigger effect_ and _trigger function_.
+You can combine using both _auto-trigger_ effect and _triggerTask_ function.
 
-For example: you auto-trigger fetching a paginated list of people on first render. Then you "manually" trigger it again with different args, according to user input, to filter the list or change page.
+For example: you auto-trigger fetching a paginated list of people on first render. Then you "manually" trigger the task again with different args, according to user input, to filter the list or change page.
 
 ## Rendering Async Data
 
@@ -215,7 +217,7 @@ function MyComponent({ asyncPerson }) {
 
 Apart from its children, it will render the render method corresponding to the Async Data state.
 
-BONUS: `AsyncViewContainer` accepts an array of `Async<Data>` at the prop `asyncData`:
+BONUS: `AsyncViewContainer` accepts an array of `Async<Data>` at the `asyncData` prop :
 
 ```tsx
 function MyComponent({ asyncPerson }) {

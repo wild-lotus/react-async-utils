@@ -18,16 +18,16 @@
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",
   "dependencies": {
-    "@types/node": "^11.10.4",
-    "@types/react": "^16.8.6"
+    "@types/node": "^11.10.5",
+    "@types/react": "^16.8.7"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^1.4.2",
-    "eslint": "^5.15.0",
+    "eslint": "^5.15.1",
     "eslint-config-prettier": "^4.1.0",
     "eslint-plugin-react": "^7.12.4",
     "eslint-plugin-react-hooks": "^1.4.0",
-    "react": "^16.8.3",
+    "react": "^16.8.4",
     "typescript": "^3.3.3333"
   },
   "peerDependencies": {
