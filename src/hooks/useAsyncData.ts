@@ -18,7 +18,7 @@ export function useAsyncData<Payload, Args extends unknown[]>(
     onError,
   }: AsyncDataOptions<Payload, Args> = {},
   deps?: unknown[],
-): [Async<Payload>, (...args: Args) => Promise<void>, () => void] {
+): [Async<Payload>, (...args: Args) => Promise<Async<Payload>>, () => void] {
   const [asyncData, setAsyncData] = useState<Async<Payload>>(newInit());
   const callsCounterRef = useRef(0);
 
@@ -28,7 +28,7 @@ export function useAsyncData<Payload, Args extends unknown[]>(
     onChange && onChange();
   };
 
-  const triggerAsyncData = async (...args: Args): Promise<void> => {
+  const triggerAsyncData = async (...args: Args): Promise<Async<Payload>> => {
     callsCounterRef.current++;
     const currentCallsCounter = callsCounterRef.current;
     return await task(

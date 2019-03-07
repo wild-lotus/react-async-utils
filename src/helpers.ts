@@ -144,19 +144,23 @@ export async function task<Payload>(
     onSuccess,
     onError,
   }: AsyncTaskOptions<Payload> = {},
-): Promise<void> {
+): Promise<Async<Payload>> {
   callback(
     currentAsync ? setInProgressOrInvalidated(currentAsync) : newInProgress(),
   );
   onChange && onChange();
   try {
     const result = await asyncFunction();
-    callback(newSuccess(result));
+    const successAsync = newSuccess(result);
+    callback(successAsync);
     onChange && onChange();
     onSuccess && onSuccess(result);
+    return successAsync;
   } catch (error) {
-    callback(newError(error));
+    const errorAsync = newError(error);
+    callback(errorAsync);
     onChange && onChange();
     onError && onError(error);
+    return errorAsync;
   }
 }
