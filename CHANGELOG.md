@@ -1,3 +1,19 @@
+## 0.9.0 (Mar 7, 2019)
+
+### Breaking changes
+
+- Renamed `useAsyncData` to `useAsyncTask`
+- The `trigger` function returned by `useAsyncData` and the helper method `task` now return a promise of the resulting `Async` instead of `void`.
+
+### New features
+
+- Prevented racing conditions in `useAsyncData` when triggering an Async task times.
+- Prevented undesired state updates from `useAsyncData` when reseting an `InProgress` Async.
+
+### Bug fixes
+
+- Deleted `useAsyncData` broken infinite loops detection in auto-trigger effect. We might add a ne one in the future.
+
 ## 0.8.0 (Mar 4, 2019)
 
 Big refactor for the sake of simplicity and understandability. Significantly revamped README.md to to explain the library more clearly.
