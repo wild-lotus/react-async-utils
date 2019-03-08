@@ -63,7 +63,7 @@ It can be considered the declarative counterpart of a `Promise`.
 This new data type allows us to create some powerful abstractions like the `useAsyncTask` custom hook
 
 ```typescript
-const [asyncPerson, triggerAsyncPersonTask] = useAsyncTask(getPersonPromise);
+const [asyncPerson, triggerGetPerson] = useAsyncTask(getPersonPromise);
 ```
 
 which we will explain further down.
@@ -136,20 +136,18 @@ This data type is the base of our library. Take your time to understand it, and 
 A powerful abstraction to manage the whole async process in a declarative way:
 
 ```typescript
-const [asyncPerson, triggerAsyncPersonTask] = useAsyncTask(getPersonPromise);
+const [asyncPerson, triggerGetPerson] = useAsyncTask(getPersonPromise);
 
 const triggerButton = (
-  <button onClick={e => triggerAsyncPersonTask(personId)}>
-    Get me that person!
-  </button>
+  <button onClick={e => triggerGetPerson(personId)}>Get me that person!</button>
 );
 ```
 
 - **`getPersonPromise`**: input function that returns a `Promise`.
 - **`asyncPerson`**: it is our Async Data. It will be in `init` state at the beginning, but will get updated when it is triggered.
-- **`triggerAsyncPersonTask`**: a function that will call `getPersonPromise` when invoked, using the given args, and it will update `asyncPerson` state according to the returned `Promise` state.
+- **`triggerGetPerson`**: a function that will call `getPersonPromise` when invoked, using the given args, and it will update `asyncPerson` state according to the returned `Promise` state.
 
-You can call the same `triggerAsyncPersonTask` as many times as needed even with different args.
+You can call the same `triggerGetPerson` as many times as needed even with different args.
 
 ### Auto-trigger effect
 
@@ -167,7 +165,7 @@ The third parameter is the dependencies for the auto-trigger effect. Any change 
 
 <hr/>
 
-You can combine using both _auto-trigger_ effect and _triggerTask_ function.
+You can combine using both _auto-trigger_ effect and _triggerAsyncTask_ function.
 
 For example: you auto-trigger fetching a paginated list of people on first render. Then you "manually" trigger the task again with different args, according to user input, to filter the list or change page.
 

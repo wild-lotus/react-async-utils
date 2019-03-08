@@ -22,13 +22,13 @@ export function useAsyncTask<Payload, Args extends unknown[]>(
   const [asyncData, setAsyncData] = useState<Async<Payload>>(newInit());
   const callsCounterRef = useRef(0);
 
-  const resetAsyncData = (): void => {
+  const resetAsyncTask = (): void => {
     callsCounterRef.current++;
     setAsyncData(newInit());
     onChange && onChange();
   };
 
-  const triggerAsyncData = async (...args: Args): Promise<Async<Payload>> => {
+  const triggerAsyncTask = async (...args: Args): Promise<Async<Payload>> => {
     callsCounterRef.current++;
     const currentCallsCounter = callsCounterRef.current;
     return await task(
@@ -48,9 +48,9 @@ export function useAsyncTask<Payload, Args extends unknown[]>(
   };
 
   useEffect(() => {
-    autoTriggerWith && triggerAsyncData(...autoTriggerWith);
+    autoTriggerWith && triggerAsyncTask(...autoTriggerWith);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps || [autoTriggerWith, getData, onChange, onError, onSuccess]);
 
-  return [asyncData, triggerAsyncData, resetAsyncData];
+  return [asyncData, triggerAsyncTask, resetAsyncTask];
 }
