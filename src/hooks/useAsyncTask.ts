@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { newInit, task } from '../helpers';
 import { Async } from '../types';
 
@@ -20,6 +20,11 @@ export function useAsyncTask<Payload, Args extends unknown[]>(
   deps?: unknown[],
 ): [Async<Payload>, (...args: Args) => Promise<Async<Payload>>, () => void] {
   const [asyncData, setAsyncData] = useState<Async<Payload>>(newInit());
+  const asyncDataRef = useRef(asyncData);
+  useEffect(() => {
+    asyncDataRef.current = asyncData;
+  }, [asyncData]);
+
   const callsCounterRef = useRef(0);
 
   const resetAsyncTask = (): void => {
@@ -28,29 +33,33 @@ export function useAsyncTask<Payload, Args extends unknown[]>(
     onChange && onChange();
   };
 
-  const triggerAsyncTask = async (...args: Args): Promise<Async<Payload>> => {
-    callsCounterRef.current++;
-    const currentCallsCounter = callsCounterRef.current;
-    return await task(
-      () => getData(...args),
-      newAsyncData => {
-        if (callsCounterRef.current === currentCallsCounter) {
-          setAsyncData(newAsyncData);
-        }
-      },
-      {
-        currentAsync: asyncData,
-        onChange,
-        onSuccess,
-        onError,
-      },
-    );
-  };
+  const triggerAsyncTask = useMemo(
+    () => async (...args: Args): Promise<Async<Payload>> => {
+      callsCounterRef.current++;
+      const currentCallsCounter = callsCounterRef.current;
+      return await task(
+        () => getData(...args),
+        newAsyncData => {
+          if (callsCounterRef.current === currentCallsCounter) {
+            setAsyncData(newAsyncData);
+          }
+        },
+        {
+          currentAsync: asyncDataRef.current,
+          onChange,
+          onSuccess,
+          onError,
+        },
+      );
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    deps || [getData, onChange, onError, onSuccess],
+  );
 
   useEffect(() => {
     autoTriggerWith && triggerAsyncTask(...autoTriggerWith);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps || [autoTriggerWith, getData, onChange, onError, onSuccess]);
+  }, deps || [autoTriggerWith, triggerAsyncTask]);
 
   return [asyncData, triggerAsyncTask, resetAsyncTask];
 }
