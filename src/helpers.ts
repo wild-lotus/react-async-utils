@@ -137,28 +137,25 @@ interface AsyncTaskOptions<Payload> {
 
 export async function task<Payload>(
   asyncFunction: () => Promise<Payload>,
-  callback: (asyncData: Async<Payload>) => void,
-  {
-    currentAsync,
-    onChange,
-    onSuccess,
-    onError,
-  }: AsyncTaskOptions<Payload> = {},
+  callback: (
+    getNewAsyncData: (prevAsyncData?: Async<Payload>) => Async<Payload>,
+  ) => void,
+  { onChange, onSuccess, onError }: AsyncTaskOptions<Payload> = {},
 ): Promise<Async<Payload>> {
-  callback(
-    currentAsync ? setInProgressOrInvalidated(currentAsync) : newInProgress(),
+  callback(prevAsyncData =>
+    prevAsyncData ? setInProgressOrInvalidated(prevAsyncData) : newInProgress(),
   );
   onChange && onChange();
   try {
     const result = await asyncFunction();
     const successAsync = newSuccess(result);
-    callback(successAsync);
+    callback(() => successAsync);
     onChange && onChange();
     onSuccess && onSuccess(result);
     return successAsync;
   } catch (error) {
     const errorAsync = newError(error);
-    callback(errorAsync);
+    callback(() => errorAsync);
     onChange && onChange();
     onError && onError(error);
     return errorAsync;

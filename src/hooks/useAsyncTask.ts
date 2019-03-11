@@ -20,10 +20,6 @@ export function useAsyncTask<Payload, Args extends unknown[]>(
   deps?: unknown[],
 ): [Async<Payload>, (...args: Args) => Promise<Async<Payload>>, () => void] {
   const [asyncData, setAsyncData] = useState<Async<Payload>>(newInit());
-  const asyncDataRef = useRef(asyncData);
-  useEffect(() => {
-    asyncDataRef.current = asyncData;
-  }, [asyncData]);
 
   const callsCounterRef = useRef(0);
 
@@ -39,13 +35,12 @@ export function useAsyncTask<Payload, Args extends unknown[]>(
       const currentCallsCounter = callsCounterRef.current;
       return await task(
         () => getData(...args),
-        newAsyncData => {
+        getNewAsyncData => {
           if (callsCounterRef.current === currentCallsCounter) {
-            setAsyncData(newAsyncData);
+            setAsyncData(getNewAsyncData);
           }
         },
         {
-          currentAsync: asyncDataRef.current,
           onChange,
           onSuccess,
           onError,
