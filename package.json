@@ -13,7 +13,8 @@
     "declarative"
   ],
   "files": [
-    "lib"
+    "lib",
+    "!lib/**/*.test.*"
   ],
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",
@@ -21,12 +22,18 @@
     "@types/node": "^11.11.3"
   },
   "devDependencies": {
+    "@babel/core": "^7.3.4",
+    "@babel/preset-env": "^7.3.4",
+    "@babel/preset-typescript": "^7.3.3",
     "@typescript-eslint/eslint-plugin": "^1.4.2",
     "@types/react": "^16.8.8",
+    "cross-env": "^5.2.0",
     "eslint": "^5.15.1",
     "eslint-config-prettier": "^4.1.0",
+    "eslint-plugin-jest": "^22.3.0",
     "eslint-plugin-react": "^7.12.4",
     "eslint-plugin-react-hooks": "^1.5.1",
+    "jest": "^24.3.1",
     "react": "^16.8.4",
     "typescript": "^3.3.3333"
   },
@@ -37,12 +44,18 @@
   "scripts": {
     "lint": "eslint . --ext \".ts,.tsx\"",
     "watch": "tsc --watch",
-    "test": "echo \"No tests yet. Open to contributions!\"",
+    "test": "jest",
     "build": "tsc"
   },
   "author": "Carlos Gines <carlos.gines.fuster@gmail.com>",
   "repository": "github:CarlosGines/react-async-utils",
   "license": "MIT",
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ],
   "prettier": {
     "singleQuote": true,
     "trailingComma": "all"
