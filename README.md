@@ -14,13 +14,14 @@ Collection of utils to work with asynchronous data in React in a more declarativ
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+
 - [The problem](#the-problem)
 - [This solution](#this-solution)
 - [Installation](#installation)
 - [The new Async Data concept](#the-new-async-data-concept)
   - [The 4 basic states of Async Data](#the-4-basic-states-of-async-data)
   - [useAsyncTask hook](#useasynctask-hook)
-    - [Auto-trigger effect](#auto-trigger-effect)
+    - [Auto trigger as an effect](#auto-trigger-as-an-effect)
   - [Rendering Async Data](#rendering-async-data)
     - [render](#render)
     - [AsyncViewContainer](#asyncviewcontainer)
@@ -139,35 +140,29 @@ A powerful abstraction to manage the whole async process in a declarative way:
 const [asyncPerson, triggerGetPerson] = useAsyncTask(getPersonPromise);
 
 const triggerButton = (
-  <button onClick={e => triggerGetPerson(personId)}>Get me that person!</button>
+  <button onClick={e => triggerGetPerson()}>Get me that person!</button>
 );
 ```
 
 - **`getPersonPromise`**: input function that returns a `Promise`.
-- **`asyncPerson`**: it is our Async Data. It will be in `init` state at the beginning, but will get updated when it is triggered.
-- **`triggerGetPerson`**: a function that will call `getPersonPromise` when invoked, using the given args, and it will update `asyncPerson` state according to the returned `Promise` state.
+- **`asyncPerson`**: it is our Async Data. It will be in `init` state at the beginning, but will start getting updated once it is triggered.
+- **`triggerGetPerson`**: a function that will call `getPersonPromise` when invoked, and it will update `asyncPerson` state according to the returned `Promise` state.
 
-You can call the same `triggerGetPerson` as many times as needed even with different args.
+You can call `triggerGetPerson` whenever you need it.
 
-### Auto-trigger effect
+### Auto trigger as an effect
 
-You can also trigger the async task automatically after the first render, providing an `autoTriggerWith` option with an array of args for the input function:
+You can also trigger the async task automatically as an effect, providing the `triggerAsEffect` option as `true`:
 
 ```typescript
-const [asyncPerson] = useAsyncTask(
-  getPersonPromise,
-  { autoTriggerWith: [personId] },
-  [personId],
-);
+const [asyncPerson] = useAsyncTask(getPersonPromise, { triggerAsEffect: true });
 ```
 
-The third parameter is the dependencies for the auto-trigger effect. Any change in the dependenies will cause the auto-trigger to happen again (just like `useEffect`, which used for this effect and receives these dependencies).
+Be careful, since if you use `triggerAsEffect` option, the input function and all of the options of the `useAsyncTask` hook will be dependencies of that effect. In this case you probably want to use `useMemo` and `useCallback` with them to avoid infinite re-renders and infinite calls to your `getPersonPromise`.
 
 <hr/>
 
-You can combine using both _auto-trigger_ effect and _triggerAsyncTask_ function.
-
-For example: you auto-trigger fetching a paginated list of people on first render. Then you "manually" trigger the task again with different args, according to user input, to filter the list or change page.
+You can use both _triggerAsEffect_ option and the returned _triggerAsyncTask_ function.
 
 ## Rendering Async Data
 
