@@ -14,7 +14,6 @@ Collection of utils to work with asynchronous data in React in a more declarativ
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-
 - [The problem](#the-problem)
 - [This solution](#this-solution)
 - [Installation](#installation)
@@ -39,7 +38,7 @@ Dealing with asynchronous data is usually an imperative process, harder to expre
 let loading;
 let data;
 let error;
-let invalidated;
+// Even more...
 ...
 ```
 
@@ -64,7 +63,7 @@ It can be considered the declarative counterpart of a `Promise`.
 This new data type allows us to create some powerful abstractions like the `useAsyncTask` custom hook
 
 ```typescript
-const [asyncPerson, triggerGetPerson] = useAsyncTask(getPersonPromise);
+const [asyncPerson] = useAsyncTask(getPersonPromise, { triggerAsEffect: true });
 ```
 
 which we will explain further down.
@@ -105,11 +104,8 @@ interface InProgressAsync {
 interface SuccessAsync<Payload> {
   progress: Progress.Success;
   payload: Payload;
-  invalidated?: boolean;
 }
 ```
-
-A successful Async can also be **invalidated**, meaning its current payload is stale and we should receive a new one.
 
 - **ERROR**: our async process failed. There will be an **error**, the cause of this failure:
 
@@ -158,11 +154,11 @@ You can also trigger the async task automatically as an effect, providing the `t
 const [asyncPerson] = useAsyncTask(getPersonPromise, { triggerAsEffect: true });
 ```
 
-Be careful, since if you use `triggerAsEffect` option, the input function and all of the options of the `useAsyncTask` hook will be dependencies of that effect. In this case you probably want to use `useMemo` and `useCallback` with them to avoid infinite re-renders and infinite calls to your `getPersonPromise`.
+Be careful, since if you use the `triggerAsEffect` option, input functions of `useAsyncTask` hook will be dependencies of that effect. In that case you want to use `useCallback` if necessary with them to avoid infinite re-renders and infinite calls to your `getPersonPromise`.
 
 <hr/>
 
-You can use both _triggerAsEffect_ option and the returned _triggerAsyncTask_ function.
+Of course you can use both _triggerAsEffect_ option and the returned _triggerAsyncTask_ function at the same time.
 
 ## Rendering Async Data
 
@@ -178,7 +174,7 @@ render(asyncPerson, {
   inProgress: () => (
     <p>In Progress state render. We are fetching our Person.</p>
   ),
-  success: (person, invalidated) => (
+  success: person => (
     <p>{`Successful state render. Please welcome ${person.name}!`}</p>
   ),
   error: error => (

@@ -1,22 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { newInit, task } from '../helpers';
+import { newInit, task, setInitOrAborted } from '../helpers';
 import { Async } from '../types';
 
 export interface AsyncDataOptions<Payload> {
   triggerAsEffect?: boolean;
-  onChange?: () => void;
   onSuccess?: (payload: Payload) => void;
   onError?: (error: Error) => void;
 }
 
 export function useAsyncTask<Payload>(
   getData: () => Promise<Payload>,
-  {
-    triggerAsEffect,
-    onChange,
-    onSuccess,
-    onError,
-  }: AsyncDataOptions<Payload> = {},
+  { triggerAsEffect, onSuccess, onError }: AsyncDataOptions<Payload> = {},
 ): [Async<Payload>, () => Promise<Async<Payload>>, () => void] {
   const [asyncData, setAsyncData] = useState<Async<Payload>>(newInit());
 
@@ -27,24 +21,19 @@ export function useAsyncTask<Payload>(
     const triggerId = triggerIdRef.current;
     return await task(
       getData,
-      getNewAsyncData => {
+      setNewAsyncData => {
         if (triggerId === triggerIdRef.current) {
-          setAsyncData(getNewAsyncData);
+          setAsyncData(setNewAsyncData);
         }
       },
-      {
-        onChange,
-        onSuccess,
-        onError,
-      },
+      { onSuccess, onError },
     );
-  }, [getData, onChange, onError, onSuccess]);
+  }, [getData, onError, onSuccess]);
 
   const resetAsyncTask = useCallback((): void => {
     triggerIdRef.current++;
-    setAsyncData(newInit());
-    onChange && onChange();
-  }, [onChange]);
+    setAsyncData(setInitOrAborted);
+  }, []);
 
   useEffect(() => {
     triggerAsEffect && triggerAsyncTask();
