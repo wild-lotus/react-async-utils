@@ -20,15 +20,15 @@ export function useAsyncTask<Payload>(
 ): [Async<Payload>, () => Promise<Async<Payload>>, () => void] {
   const [asyncData, setAsyncData] = useState<Async<Payload>>(newInit());
 
-  const raceConditionCounterRef = useRef(0);
+  const triggerIdRef = useRef(0);
 
   const triggerAsyncTask = useCallback(async (): Promise<Async<Payload>> => {
-    raceConditionCounterRef.current++;
-    const currentRaceCounditionCounter = raceConditionCounterRef.current;
+    triggerIdRef.current++;
+    const triggerId = triggerIdRef.current;
     return await task(
       getData,
       getNewAsyncData => {
-        if (raceConditionCounterRef.current === currentRaceCounditionCounter) {
+        if (triggerId === triggerIdRef.current) {
           setAsyncData(getNewAsyncData);
         }
       },
@@ -41,7 +41,7 @@ export function useAsyncTask<Payload>(
   }, [getData, onChange, onError, onSuccess]);
 
   const resetAsyncTask = useCallback((): void => {
-    raceConditionCounterRef.current++;
+    triggerIdRef.current++;
     setAsyncData(newInit());
     onChange && onChange();
   }, [onChange]);
