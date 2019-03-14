@@ -42,7 +42,7 @@ let error;
 ...
 ```
 
-This a somehow complex construct for such an ubiquitous case. It can lead to verbose code, even more when dealing with multiple pieces of async data at the same time. Some of these combinations don't even make sense (`loading === true && error != null`?).
+This a somehow complex construct for such an ubiquitous case. It can lead to verbose code, even more when dealing with multiple pieces of async data at the same time. Some of these combinations don't even make sense (`loading === true && error !== undefined`?).
 
 So, it can feel awkward to follow this pattern. And you probably need to repeat that "boilerplate" a lot in your app.
 
@@ -60,7 +60,7 @@ let asyncPerson: Async<Person>;
 
 It can be considered the declarative counterpart of a `Promise`.
 
-This new data type allows us to create some powerful abstractions like the `useAsyncTask` custom hook
+This new data type allows us to create some powerful abstractions, like the `useAsyncTask` custom hook
 
 ```typescript
 const [asyncPerson] = useAsyncTask(getPersonPromise, { triggerAsEffect: true });
@@ -136,7 +136,7 @@ A powerful abstraction to manage the whole async process in a declarative way:
 const [asyncPerson, triggerGetPerson] = useAsyncTask(getPersonPromise);
 
 const triggerButton = (
-  <button onClick={e => triggerGetPerson()}>Get me that person!</button>
+  <button onClick={() => triggerGetPerson()}>Get me that person!</button>
 );
 ```
 

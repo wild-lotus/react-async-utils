@@ -12,12 +12,12 @@ import {
 // Async Data "constructors"
 //
 
-export const newInit = <Payload>(aborted?: boolean): InitAsync => ({
+export const newInit = (aborted?: boolean): InitAsync => ({
   progress: Progress.Init,
   aborted,
 });
 
-export const newInProgress = <Payload>(): InProgressAsync => ({
+export const newInProgress = (): InProgressAsync => ({
   progress: Progress.InProgress,
 });
 
