@@ -68,7 +68,7 @@ export const AsyncViewContainer = memo(function AsyncViewWrapper2({
       {error &&
       (!Array.isArray(error) || error.length > 0) &&
       errorRender &&
-      setErrorRenderBeforeChildren
+      !setErrorRenderBeforeChildren
         ? (errorRender as (error: Error | Error[]) => ReactNode)(error)
         : null}
     </>
