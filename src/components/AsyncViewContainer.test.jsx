@@ -145,6 +145,22 @@ it('renders only children and `errorRender` after it given an array with any `Er
   expect(container).not.toHaveTextContent(IN_PROGRESS);
 });
 
+it('renders both `inProgressRender` and `errorRender`given an array with a `InProgressAsync` and a `ErrorAsync`', () => {
+  const IN_PROGRESS = 'tivekzio';
+  const ERROR = 'juzpecto';
+  const { container } = render(
+    <AsyncViewContainer
+      asyncData={[newInProgress(), newError(new Error())]}
+      inProgressRender={() => <p>{IN_PROGRESS}</p>}
+      errorRender={() => <p>{ERROR}</p>}
+    >
+      <p>zubihora</p>
+    </AsyncViewContainer>,
+  );
+  expect(container).toHaveTextContent(IN_PROGRESS);
+  expect(container).toHaveTextContent(ERROR);
+});
+
 it('renders one `errorRender` per `ErrorAsync` in the given an array', () => {
   const ERROR_1 = 'cenafret';
   const ERROR_2 = 'calkoagu';
@@ -157,8 +173,8 @@ it('renders one `errorRender` per `ErrorAsync` in the given an array', () => {
         newError(new Error(ERROR_3)),
       ]}
       inProgressRender={null}
-      errorRender={(errors: Error[]) =>
-        errors.map((error: Error, i: number) => <p key={i}>{error.message}</p>)
+      errorRender={errors =>
+        errors.map((error, i) => <p key={i}>{error.message}</p>)
       }
     >
       <p>gubupgen</p>
@@ -167,4 +183,34 @@ it('renders one `errorRender` per `ErrorAsync` in the given an array', () => {
   expect(container).toHaveTextContent(
     new RegExp(`${ERROR_1}.*${ERROR_2}.*${ERROR_3}`),
   );
+});
+
+it('renders `inProgressRender` given no `InProgressAsync` but `forceInProgress`', () => {
+  const IN_PROGRESS = 'rofmomeb';
+  const { container } = render(
+    <AsyncViewContainer
+      asyncData={newInit()}
+      inProgressRender={() => <p>{IN_PROGRESS}</p>}
+      forceInProgress
+      errorRender={null}
+    >
+      <p>ozepejhu</p>
+    </AsyncViewContainer>,
+  );
+  expect(container).toHaveTextContent(IN_PROGRESS);
+});
+
+it('renders `errorRender` given no `ErrorAsync` but `forceError`', () => {
+  const ERROR = 'nafbuvim';
+  const { container } = render(
+    <AsyncViewContainer
+      asyncData={newInit()}
+      inProgressRender={null}
+      errorRender={() => <p>{ERROR}</p>}
+      forceError={new Error()}
+    >
+      <p>lihasaze</p>
+    </AsyncViewContainer>,
+  );
+  expect(container).toHaveTextContent(ERROR);
 });

@@ -1,5 +1,5 @@
 import { map, newSuccess, newError } from './helpers';
-import { Async } from './types';
+// import { Async } from './types';
 
 describe('map', () => {
   it('maps `SuccessAsync`s', () => {
