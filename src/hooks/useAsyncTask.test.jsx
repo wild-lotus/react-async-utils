@@ -15,17 +15,36 @@ function UseAsyncTaskComponent({ getData, options, children }) {
   return children(...result);
 }
 
+function getAbortablePromise({
+  resolveWith,
+  rejectWith,
+  signal,
+  onAbortCallback,
+}) {
+  if (signal.aborted) {
+    return Promise.reject(new DOMException('Aborted', 'AbortError'));
+  }
+  return new Promise((resolve, reject) => {
+    signal.addEventListener('abort', () => {
+      onAbortCallback && onAbortCallback();
+      reject(new DOMException('Aborted', 'AbortError'));
+    });
+    resolveWith !== undefined && resolve(resolveWith);
+    rejectWith !== undefined && reject(rejectWith);
+  });
+}
+
 it('updates async data to `SuccessAsync` state after being triggered and invokes `onSuccess` callback', async () => {
   const TRIGGER_BUTTON_TEST_ID = 'sezcahie';
   const INIT_TEXT = 'INIT_abocawut';
   const IN_PROGRESS_TEXT = 'IN_PROGRESS_bonihzes';
   const SUCCESS_TEXT = 'SUCCESS_ukejemuo';
   const PAYLOAD = 'PAYLOAD_ezhihnoi';
-  const handleSuccessCallback = jest.fn();
+  const onSuccessCallback = jest.fn();
   const { container, getByTestId } = testingRender(
     <UseAsyncTaskComponent
       getData={() => Promise.resolve(PAYLOAD)}
-      options={{ onSuccess: handleSuccessCallback }}
+      options={{ onSuccess: onSuccessCallback }}
     >
       {(asyncData, triggerAsycTask) => (
         <>
@@ -47,11 +66,11 @@ it('updates async data to `SuccessAsync` state after being triggered and invokes
   expect(container).toHaveTextContent(INIT_TEXT);
   fireEvent.click(getByTestId(TRIGGER_BUTTON_TEST_ID));
   expect(container).toHaveTextContent(IN_PROGRESS_TEXT);
-  expect(handleSuccessCallback).toHaveBeenCalledTimes(0);
+  expect(onSuccessCallback).toHaveBeenCalledTimes(0);
   await wait();
   expect(container).toHaveTextContent(SUCCESS_TEXT);
-  expect(handleSuccessCallback).toHaveBeenCalledTimes(1);
-  expect(handleSuccessCallback).toHaveBeenCalledWith(PAYLOAD);
+  expect(onSuccessCallback).toHaveBeenCalledTimes(1);
+  expect(onSuccessCallback).toHaveBeenCalledWith(PAYLOAD);
 });
 
 it('updates async data to `ErrorAsync` state after being triggered and invokes `onError` callback', async () => {
@@ -60,11 +79,11 @@ it('updates async data to `ErrorAsync` state after being triggered and invokes `
   const IN_PROGRESS_TEXT = 'IN_PROGRESS_tokunalf';
   const ERROR_TEXT = 'ERROR_vaowdenz';
   const ERROR = new Error();
-  const handleErrorCallback = jest.fn();
+  const onErrorCallback = jest.fn();
   const { container, getByTestId } = testingRender(
     <UseAsyncTaskComponent
       getData={() => Promise.reject(ERROR)}
-      options={{ onError: handleErrorCallback }}
+      options={{ onError: onErrorCallback }}
     >
       {(asyncData, triggerAsycTask) => (
         <>
@@ -86,11 +105,11 @@ it('updates async data to `ErrorAsync` state after being triggered and invokes `
   expect(container).toHaveTextContent(INIT_TEXT);
   fireEvent.click(getByTestId(TRIGGER_BUTTON_TEST_ID));
   expect(container).toHaveTextContent(IN_PROGRESS_TEXT);
-  expect(handleErrorCallback).toHaveBeenCalledTimes(0);
+  expect(onErrorCallback).toHaveBeenCalledTimes(0);
   await wait();
   expect(container).toHaveTextContent(ERROR_TEXT);
-  expect(handleErrorCallback).toHaveBeenCalledTimes(1);
-  expect(handleErrorCallback).toHaveBeenCalledWith(ERROR);
+  expect(onErrorCallback).toHaveBeenCalledTimes(1);
+  expect(onErrorCallback).toHaveBeenCalledWith(ERROR);
 });
 
 it('updates async data state as an effect', async () => {
@@ -116,15 +135,20 @@ it('updates async data state as an effect', async () => {
   expect(container).toHaveTextContent(SUCCESS_TEXT);
 });
 
-it('updates async data to `InitAsync` or aborted `InitAsync` state after being reset', async () => {
+it('updates async data to `InitAsync` or aborted `InitAsync` state and fires the provided `AbortSignal` after being reset', async () => {
   const TRIGGER_BUTTON_TEST_ID = 'wivalcij';
   const RESET_BUTTON_TEST_ID = 'kusjiuck';
   const INIT_TEXT = 'INIT_ohihuwda';
   const ABORTED_TEXT = 'ABORTED_fisozkuc';
   const IN_PROGRESS_TEXT = 'IN_PROGRESS_bizkopoz';
   const SUCCESS_TEXT = 'SUCCESS_wukdaajo';
+  const onAbortCallback = jest.fn();
   const { container, getByTestId } = testingRender(
-    <UseAsyncTaskComponent getData={() => Promise.resolve()}>
+    <UseAsyncTaskComponent
+      getData={signal =>
+        getAbortablePromise({ resolveWith: null, signal, onAbortCallback })
+      }
+    >
       {(asyncData, triggerAsycTask, resetAsyncTask) => (
         <>
           <button
@@ -146,10 +170,51 @@ it('updates async data to `InitAsync` or aborted `InitAsync` state after being r
   expect(container).toHaveTextContent(IN_PROGRESS_TEXT);
   await wait();
   expect(container).toHaveTextContent(SUCCESS_TEXT);
+  expect(onAbortCallback).toHaveBeenCalledTimes(0);
   fireEvent.click(getByTestId(RESET_BUTTON_TEST_ID));
   expect(container).toHaveTextContent(INIT_TEXT);
+  expect(onAbortCallback).toHaveBeenCalledTimes(1);
   fireEvent.click(getByTestId(TRIGGER_BUTTON_TEST_ID));
   expect(container).toHaveTextContent(IN_PROGRESS_TEXT);
   fireEvent.click(getByTestId(RESET_BUTTON_TEST_ID));
   expect(container).toHaveTextContent(ABORTED_TEXT);
+  expect(onAbortCallback).toHaveBeenCalledTimes(2);
+});
+
+it('prevents racing conditions', async () => {
+  const TRIGGER_BUTTON_TEST_ID = 'esusodba';
+  const onSuccessCallback = jest.fn();
+  const onAbortCallback = jest.fn();
+  let counter = 1;
+  const { getByTestId } = testingRender(
+    <UseAsyncTaskComponent
+      getData={signal => {
+        const payload = counter;
+        counter++;
+        return getAbortablePromise({
+          resolveWith: payload,
+          signal,
+          onAbortCallback,
+        });
+      }}
+      options={{ onSuccess: onSuccessCallback }}
+    >
+      {(asyncData, triggerAsycTask) => (
+        <>
+          <button
+            onClick={triggerAsycTask}
+            data-testid={TRIGGER_BUTTON_TEST_ID}
+          />
+        </>
+      )}
+    </UseAsyncTaskComponent>,
+  );
+  fireEvent.click(getByTestId(TRIGGER_BUTTON_TEST_ID));
+  expect(onAbortCallback).toHaveBeenCalledTimes(0);
+  fireEvent.click(getByTestId(TRIGGER_BUTTON_TEST_ID));
+  expect(onAbortCallback).toHaveBeenCalledTimes(1);
+  expect(onSuccessCallback).toHaveBeenCalledTimes(0);
+  await wait();
+  expect(onSuccessCallback).toHaveBeenCalledTimes(1);
+  expect(onSuccessCallback).toHaveBeenCalledWith(2);
 });

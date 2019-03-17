@@ -132,7 +132,7 @@ export async function task<Payload>(
   asyncFunction: () => Promise<Payload>,
   callback: (
     setNewAsyncData: (prevAsyncData?: Async<Payload>) => Async<Payload>,
-  ) => void,
+  ) => boolean | void,
   { onSuccess, onError }: AsyncTaskOptions<Payload> = {},
 ): Promise<Async<Payload>> {
   callback(prevAsyncData =>
@@ -141,8 +141,8 @@ export async function task<Payload>(
   try {
     const result = await asyncFunction();
     const successAsync = newSuccess(result);
-    callback(() => successAsync);
-    onSuccess && onSuccess(result);
+    const aborted = callback(() => successAsync);
+    !aborted && onSuccess && onSuccess(result);
     return successAsync;
   } catch (error) {
     if (error && error.name === 'AbortError') {
@@ -151,8 +151,8 @@ export async function task<Payload>(
       return abortedAsync;
     } else {
       const errorAsync = newError(error);
-      callback(() => errorAsync);
-      onError && onError(error);
+      const aborted = callback(() => errorAsync);
+      !aborted && onError && onError(error);
       return errorAsync;
     }
   }
