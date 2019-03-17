@@ -14,14 +14,15 @@ Collection of utils to work with asynchronous data in React in a more declarativ
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+
 - [The problem](#the-problem)
 - [This solution](#this-solution)
 - [Installation](#installation)
-- [The new Async Data concept](#the-new-async-data-concept)
-  - [The 4 basic states of Async Data](#the-4-basic-states-of-async-data)
+- [The new `Async` data concept](#the-new-async-data-concept)
+  - [The 4 basic states of `Async` data](#the-4-basic-states-of-async-data)
   - [useAsyncTask hook](#useasynctask-hook)
     - [Auto trigger as an effect](#auto-trigger-as-an-effect)
-  - [Rendering Async Data](#rendering-async-data)
+  - [Rendering `Async` data](#rendering-async-data)
     - [render](#render)
     - [AsyncViewContainer](#asyncviewcontainer)
 - [API Reference (WIP)](#api-reference-wip)
@@ -74,13 +75,13 @@ which we will explain further down.
 npm install react-async-utils
 ```
 
-# The new Async Data concept
+# The new `Async` data concept
 
 We are going to deal with async data in all of its possible states as a single entity. This entity includes all possible states and related data within it, in an ordered (and type-safe) manner.
 
-## The 4 basic states of Async Data
+## The 4 basic states of `Async` data
 
-We consider any Async Data can exist in one of this 4 states:
+We consider any `Async` data can exist in one of this 4 states:
 
 - **INIT**: nothing has happened yet. This is time 0 of our async process:
 
@@ -116,7 +117,7 @@ interface ErrorAsync {
 }
 ```
 
-And so, an Async Data encapsulates the 4 states of a piece of data along the async process within a single data type:
+And so, an `Async` data encapsulates the 4 states of a piece of data along the async process within a single data type:
 
 ```typescript
 export type Async<Payload> =
@@ -141,8 +142,8 @@ const triggerButton = (
 ```
 
 - **`getPersonPromise`**: input function that returns a `Promise`.
-- **`asyncPerson`**: it is our Async Data. It will be in `init` state at the beginning, but will start getting updated once it is triggered.
-- **`triggerGetPerson`**: a function that will call `getPersonPromise` when invoked, and it will update `asyncPerson` state according to the returned `Promise` state.
+- **`asyncPerson`**: it is our `Async` data. It will be in the `InitAsync` state at the beginning, but will start getting updated once the async task is triggered.
+- **`triggerGetPerson`**: a function that triggers the async task. It will call `getPersonPromise` when invoked, and it will update `asyncPerson` state according to the returned `Promise` state.
 
 You can call `triggerGetPerson` whenever you need it.
 
@@ -160,7 +161,7 @@ Be careful, since if you use the `triggerAsEffect` option, input functions of `u
 
 Of course you can use both _triggerAsEffect_ option and the returned _triggerAsyncTask_ function at the same time.
 
-## Rendering Async Data
+## Rendering `Async` data
 
 ### render
 
@@ -175,10 +176,10 @@ render(asyncPerson, {
     <p>In Progress state render. We are fetching our Person.</p>
   ),
   success: person => (
-    <p>{`Successful state render. Please welcome ${person.name}!`}</p>
+    <p>Successful state render. Please welcome {person.name}!</p>
   ),
   error: error => (
-    <p>{`Error state render. Something went wrong: ${error.message}`}</p>
+    <p>Error state render. Something went wrong: {error.message}</p>
   ),
 });
 ```
@@ -204,9 +205,9 @@ function MyComponent({ asyncPerson }) {
 }
 ```
 
-Apart from its children, it will render the render method corresponding to the Async Data state.
+Apart from its children, it will render the render method corresponding to the `Async` data state.
 
-BONUS: `AsyncViewContainer` accepts an array of `Async<Data>` at the `asyncData` prop :
+BONUS: `AsyncViewContainer` accepts an array at the `asyncData` prop :
 
 ```tsx
 function MyComponent({ asyncPerson }) {
@@ -222,7 +223,7 @@ function MyComponent({ asyncPerson }) {
 }
 ```
 
-It will render the corresponding render method if _any_ Async Data is on that state.
+It will render the corresponding render method if _any_ `Async` data is on that state.
 
 # API Reference (WIP)
 
