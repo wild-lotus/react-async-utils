@@ -6,7 +6,7 @@ import {
   wait,
 } from 'react-testing-library';
 import { useAsyncTask } from './useAsyncTask';
-import { render as asyncRender } from '../helpers';
+import { render as asyncRender } from '../render';
 
 afterEach(cleanup);
 
