@@ -123,29 +123,6 @@ export const map = <Payload1, Payload2>(
 // Higher level helpers
 //
 
-export const render = <Payload>(
-  origin: Async<Payload>,
-  render: {
-    init?: (aborted?: boolean) => ReactNode;
-    inProgress?: () => ReactNode;
-    success?: (payload: Payload, invalidated?: boolean) => ReactNode;
-    error?: (error: Error) => ReactNode;
-  },
-): ReactNode => {
-  switch (origin.progress) {
-    case Progress.Init:
-      return render.init ? render.init(origin.aborted) : null;
-    case Progress.InProgress:
-      return render.inProgress ? render.inProgress() : null;
-    case Progress.Success:
-      return render.success
-        ? render.success(origin.payload, origin.invalidated)
-        : null;
-    case Progress.Error:
-      return render.error ? render.error(origin.error) : null;
-  }
-};
-
 interface AsyncTaskOptions<Payload> {
   onSuccess?: ((payload: Payload) => void) | undefined;
   onError?: ((error: Error) => void) | undefined;
@@ -155,7 +132,7 @@ export async function task<Payload>(
   asyncFunction: () => Promise<Payload>,
   callback: (
     setNewAsyncData: (prevAsyncData?: Async<Payload>) => Async<Payload>,
-  ) => void,
+  ) => boolean | void,
   { onSuccess, onError }: AsyncTaskOptions<Payload> = {},
 ): Promise<Async<Payload>> {
   callback(prevAsyncData =>
@@ -164,18 +141,18 @@ export async function task<Payload>(
   try {
     const result = await asyncFunction();
     const successAsync = newSuccess(result);
-    callback(() => successAsync);
-    onSuccess && onSuccess(result);
+    const aborted = callback(() => successAsync);
+    !aborted && onSuccess && onSuccess(result);
     return successAsync;
   } catch (error) {
-    if (error.name === 'AbortError') {
+    if (error && error.name === 'AbortError') {
       const abortedAsync = newInit(true);
       callback(() => abortedAsync);
       return abortedAsync;
     } else {
       const errorAsync = newError(error);
-      callback(() => errorAsync);
-      onError && onError(error);
+      const aborted = callback(() => errorAsync);
+      !aborted && onError && onError(error);
       return errorAsync;
     }
   }

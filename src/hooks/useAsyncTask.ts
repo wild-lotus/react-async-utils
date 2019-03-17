@@ -28,6 +28,8 @@ export function useAsyncTask<Payload>(
       setNewAsyncData => {
         if (triggerId === triggerIdRef.current) {
           setAsyncData(setNewAsyncData);
+        } else {
+          return true;
         }
       },
       { onSuccess, onError },
