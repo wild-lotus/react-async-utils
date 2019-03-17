@@ -1,56 +1,52 @@
-import { useEffect, useState, useRef } from 'react';
-import { newInit, task } from '../helpers';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { newInit, task, setInitOrAborted } from '../helpers';
 import { Async } from '../types';
 
-export interface AsyncDataOptions<Payload, Args extends unknown[]> {
-  autoTriggerWith?: Args;
-  onChange?: () => void;
+export interface UseAsyncTaskOptions<Payload> {
+  triggerAsEffect?: boolean;
   onSuccess?: (payload: Payload) => void;
   onError?: (error: Error) => void;
 }
 
-export function useAsyncTask<Payload, Args extends unknown[]>(
-  getData: (...args: Args) => Promise<Payload>,
-  {
-    autoTriggerWith,
-    onChange,
-    onSuccess,
-    onError,
-  }: AsyncDataOptions<Payload, Args> = {},
-  deps?: unknown[],
-): [Async<Payload>, (...args: Args) => Promise<Async<Payload>>, () => void] {
+export function useAsyncTask<Payload>(
+  getData: (singal: AbortSignal) => Promise<Payload>,
+  { triggerAsEffect, onSuccess, onError }: UseAsyncTaskOptions<Payload> = {},
+): [Async<Payload>, () => Promise<Async<Payload>>, () => void] {
   const [asyncData, setAsyncData] = useState<Async<Payload>>(newInit());
-  const callsCounterRef = useRef(0);
 
-  const resetAsyncData = (): void => {
-    callsCounterRef.current++;
-    setAsyncData(newInit());
-    onChange && onChange();
-  };
+  const triggerIdRef = useRef(0);
+  const abortControllerRef = useRef<AbortController>();
 
-  const triggerAsyncData = async (...args: Args): Promise<Async<Payload>> => {
-    callsCounterRef.current++;
-    const currentCallsCounter = callsCounterRef.current;
+  const triggerAsyncTask = useCallback(async (): Promise<Async<Payload>> => {
+    triggerIdRef.current++;
+    const triggerId = triggerIdRef.current;
+    abortControllerRef.current && abortControllerRef.current.abort();
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
     return await task(
-      () => getData(...args),
-      newAsyncData => {
-        if (callsCounterRef.current === currentCallsCounter) {
-          setAsyncData(newAsyncData);
+      () => getData(abortController.signal),
+      setNewAsyncData => {
+        if (triggerId === triggerIdRef.current) {
+          setAsyncData(setNewAsyncData);
+        } else {
+          return true;
         }
       },
-      {
-        currentAsync: asyncData,
-        onChange,
-        onSuccess,
-        onError,
-      },
+      { onSuccess, onError },
     );
-  };
+  }, [getData, onError, onSuccess]);
+
+  const resetAsyncTask = useCallback((): void => {
+    triggerIdRef.current++;
+    abortControllerRef.current && abortControllerRef.current.abort();
+    abortControllerRef.current = undefined;
+    setAsyncData(setInitOrAborted);
+  }, []);
 
   useEffect(() => {
-    autoTriggerWith && triggerAsyncData(...autoTriggerWith);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps || [autoTriggerWith, getData, onChange, onError, onSuccess]);
+    triggerAsEffect && triggerAsyncTask();
+    return resetAsyncTask;
+  }, [triggerAsEffect, triggerAsyncTask, resetAsyncTask]);
 
-  return [asyncData, triggerAsyncData, resetAsyncData];
+  return [asyncData, triggerAsyncTask, resetAsyncTask];
 }

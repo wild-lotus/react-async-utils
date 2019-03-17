@@ -7,6 +7,7 @@ export enum Progress {
 
 export interface InitAsync {
   progress: Progress.Init;
+  aborted?: boolean;
 }
 export interface InProgressAsync {
   progress: Progress.InProgress;

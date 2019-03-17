@@ -14,14 +14,15 @@ Collection of utils to work with asynchronous data in React in a more declarativ
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+
 - [The problem](#the-problem)
 - [This solution](#this-solution)
 - [Installation](#installation)
-- [The new Async Data concept](#the-new-async-data-concept)
-  - [The 4 basic states of Async Data](#the-4-basic-states-of-async-data)
+- [The new `Async` data concept](#the-new-async-data-concept)
+  - [The 4 basic states of `Async` data](#the-4-basic-states-of-async-data)
   - [useAsyncTask hook](#useasynctask-hook)
-    - [Auto-trigger effect](#auto-trigger-effect)
-  - [Rendering Async Data](#rendering-async-data)
+    - [Auto trigger as an effect](#auto-trigger-as-an-effect)
+  - [Rendering `Async` data](#rendering-async-data)
     - [render](#render)
     - [AsyncViewContainer](#asyncviewcontainer)
 - [API Reference (WIP)](#api-reference-wip)
@@ -38,11 +39,11 @@ Dealing with asynchronous data is usually an imperative process, harder to expre
 let loading;
 let data;
 let error;
-let invalidated;
+// Even more...
 ...
 ```
 
-This a somehow complex construct for such an ubiquitous case. It can lead to verbose code, even more when dealing with multiple pieces of async data at the same time. Some of these combinations don't even make sense (`loading === true && error != null`?).
+This a somehow complex construct for such an ubiquitous case. It can lead to verbose code, even more when dealing with multiple pieces of async data at the same time. Some of these combinations don't even make sense (`loading === true && error !== undefined`?).
 
 So, it can feel awkward to follow this pattern. And you probably need to repeat that "boilerplate" a lot in your app.
 
@@ -60,10 +61,10 @@ let asyncPerson: Async<Person>;
 
 It can be considered the declarative counterpart of a `Promise`.
 
-This new data type allows us to create some powerful abstractions like the `useAsyncTask` custom hook
+This new data type allows us to create some powerful abstractions, like the `useAsyncTask` custom hook
 
 ```typescript
-const [asyncPerson, triggerAsyncPersonTask] = useAsyncTask(getPersonPromise);
+const [asyncPerson] = useAsyncTask(getPersonPromise, { triggerAsEffect: true });
 ```
 
 which we will explain further down.
@@ -74,13 +75,13 @@ which we will explain further down.
 npm install react-async-utils
 ```
 
-# The new Async Data concept
+# The new `Async` data concept
 
 We are going to deal with async data in all of its possible states as a single entity. This entity includes all possible states and related data within it, in an ordered (and type-safe) manner.
 
-## The 4 basic states of Async Data
+## The 4 basic states of `Async` data
 
-We consider any Async Data can exist in one of this 4 states:
+We consider any `Async` data can exist in one of this 4 states:
 
 - **INIT**: nothing has happened yet. This is time 0 of our async process:
 
@@ -104,11 +105,8 @@ interface InProgressAsync {
 interface SuccessAsync<Payload> {
   progress: Progress.Success;
   payload: Payload;
-  invalidated?: boolean;
 }
 ```
-
-A successful Async can also be **invalidated**, meaning its current payload is stale and we should receive a new one.
 
 - **ERROR**: our async process failed. There will be an **error**, the cause of this failure:
 
@@ -119,7 +117,7 @@ interface ErrorAsync {
 }
 ```
 
-And so, an Async Data encapsulates the 4 states of a piece of data along the async process within a single data type:
+And so, an `Async` data encapsulates the 4 states of a piece of data along the async process within a single data type:
 
 ```typescript
 export type Async<Payload> =
@@ -136,42 +134,34 @@ This data type is the base of our library. Take your time to understand it, and 
 A powerful abstraction to manage the whole async process in a declarative way:
 
 ```typescript
-const [asyncPerson, triggerAsyncPersonTask] = useAsyncTask(getPersonPromise);
+const [asyncPerson, triggerGetPerson] = useAsyncTask(getPersonPromise);
 
 const triggerButton = (
-  <button onClick={e => triggerAsyncPersonTask(personId)}>
-    Get me that person!
-  </button>
+  <button onClick={() => triggerGetPerson()}>Get me that person!</button>
 );
 ```
 
 - **`getPersonPromise`**: input function that returns a `Promise`.
-- **`asyncPerson`**: it is our Async Data. It will be in `init` state at the beginning, but will get updated when it is triggered.
-- **`triggerAsyncPersonTask`**: a function that will call `getPersonPromise` when invoked, using the given args, and it will update `asyncPerson` state according to the returned `Promise` state.
+- **`asyncPerson`**: it is our `Async` data. It will be in the `InitAsync` state at the beginning, but will start getting updated once the async task is triggered.
+- **`triggerGetPerson`**: a function that triggers the async task. It will call `getPersonPromise` when invoked, and it will update `asyncPerson` state according to the returned `Promise` state.
 
-You can call the same `triggerAsyncPersonTask` as many times as needed even with different args.
+You can call `triggerGetPerson` whenever you need it.
 
-### Auto-trigger effect
+### Auto trigger as an effect
 
-You can also trigger the async task automatically after the first render, providing an `autoTriggerWith` option with an array of args for the input function:
+You can also trigger the async task automatically as an effect, providing the `triggerAsEffect` option as `true`:
 
 ```typescript
-const [asyncPerson] = useAsyncTask(
-  getPersonPromise,
-  { autoTriggerWith: [personId] },
-  [personId],
-);
+const [asyncPerson] = useAsyncTask(getPersonPromise, { triggerAsEffect: true });
 ```
 
-The third parameter is the dependencies for the auto-trigger effect. Any change in the dependenies will cause the auto-trigger to happen again (just like `useEffect`, which used for this effect and receives these dependencies).
+Be careful, since if you use the `triggerAsEffect` option, input functions of `useAsyncTask` hook will be dependencies of that effect. In that case you want to use `useCallback` if necessary with them to avoid infinite re-renders and infinite calls to your `getPersonPromise`.
 
 <hr/>
 
-You can combine using both _auto-trigger_ effect and _triggerTask_ function.
+Of course you can use both _triggerAsEffect_ option and the returned _triggerAsyncTask_ function at the same time.
 
-For example: you auto-trigger fetching a paginated list of people on first render. Then you "manually" trigger the task again with different args, according to user input, to filter the list or change page.
-
-## Rendering Async Data
+## Rendering `Async` data
 
 ### render
 
@@ -185,11 +175,11 @@ render(asyncPerson, {
   inProgress: () => (
     <p>In Progress state render. We are fetching our Person.</p>
   ),
-  success: (person, invalidated) => (
-    <p>{`Successful state render. Please welcome ${person.name}!`}</p>
+  success: person => (
+    <p>Successful state render. Please welcome {person.name}!</p>
   ),
   error: error => (
-    <p>{`Error state render. Something went wrong: ${error.message}`}</p>
+    <p>Error state render. Something went wrong: {error.message}</p>
   ),
 });
 ```
@@ -215,9 +205,9 @@ function MyComponent({ asyncPerson }) {
 }
 ```
 
-Apart from its children, it will render the render method corresponding to the Async Data state.
+Apart from its children, it will render the render method corresponding to the `Async` data state.
 
-BONUS: `AsyncViewContainer` accepts an array of `Async<Data>` at the `asyncData` prop :
+BONUS: `AsyncViewContainer` accepts an array at the `asyncData` prop :
 
 ```tsx
 function MyComponent({ asyncPerson }) {
@@ -233,7 +223,7 @@ function MyComponent({ asyncPerson }) {
 }
 ```
 
-It will render the corresponding render method if _any_ Async Data is on that state.
+It will render the corresponding render method if _any_ `Async` data is on that state.
 
 # API Reference (WIP)
 

@@ -1,3 +1,25 @@
+## 0.10.0 (Mar 17, 2019)
+
+This is a relevant new verion. We have reached a more stable version of `useAsyncTask` hook: it finally meets `exhaustive-deps` rule, avoiding some bugs and making its API more intuitive. There are also new features regarding aborting tasks and race conditions. We have also added tests.
+
+### Breaking changes
+
+- Updated `useAsyncTask`:
+  - New boolean `triggerAsEffect` option instead of `autoTriggerWith` to trigger the async task automatcally.
+  - Removed `onChange` option.
+
+### New features
+
+- `useAsyncTask` handles race condition prevention.
+- `useAsyncTask` provides an `AbortSignal` at the input function to make it abortable.
+- Added `aborted` substate to `InitAsync`. Adapted helper methods, `render` and `useAsyncTask` accordingly.
+- Added tests.
+
+### Bug fixes
+
+- Fixed `errorRender` not being rendered at `AsyncViewContainer` in some cases.
+- Fixed `AsyncViewContainer` properly accepting `null` as render props.
+
 ## 0.9.0 (Mar 7, 2019)
 
 ### Breaking changes
