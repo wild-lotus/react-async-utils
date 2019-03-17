@@ -6,171 +6,183 @@ import { newInit, newInProgress, newError } from '../helpers';
 afterEach(cleanup);
 
 it('renders only children given an `InitAsync`', () => {
-  const CHILDREN = 'dargorav';
-  const IN_PROGRESS = 'ufedussu';
-  const ERROR = 'povahaer';
+  const CHILDREN_TEXT = 'dargorav';
+  const IN_PROGRESS_TEXT = 'ufedussu';
+  const ERROR_TEXT = 'povahaer';
   const { container } = render(
     <AsyncViewContainer
       asyncData={newInit()}
-      inProgressRender={() => <p>{IN_PROGRESS}</p>}
-      errorRender={() => <p>{ERROR}</p>}
+      inProgressRender={() => <p>{IN_PROGRESS_TEXT}</p>}
+      errorRender={() => <p>{ERROR_TEXT}</p>}
     >
-      <p>{CHILDREN}</p>
+      <p>{CHILDREN_TEXT}</p>
     </AsyncViewContainer>,
   );
-  expect(container).toHaveTextContent(CHILDREN);
-  expect(container).not.toHaveTextContent(IN_PROGRESS);
-  expect(container).not.toHaveTextContent(IN_PROGRESS);
+  expect(container).toHaveTextContent(CHILDREN_TEXT);
+  expect(container).not.toHaveTextContent(IN_PROGRESS_TEXT);
+  expect(container).not.toHaveTextContent(IN_PROGRESS_TEXT);
 });
 
 it('renders only children and `inProgressRender` after it given an `InProgressAsync`', () => {
-  const CHILDREN = 'nopedudo';
-  const IN_PROGRESS = 'jugaprom';
-  const ERROR = 'zebozcur';
+  const CHILDREN_TEXT = 'nopedudo';
+  const IN_PROGRESS_TEXT = 'jugaprom';
+  const ERROR_TEXT = 'zebozcur';
   const { container } = render(
     <AsyncViewContainer
       asyncData={newInProgress()}
-      inProgressRender={() => <p>{IN_PROGRESS}</p>}
-      errorRender={() => <p>{ERROR}</p>}
+      inProgressRender={() => <p>{IN_PROGRESS_TEXT}</p>}
+      errorRender={() => <p>{ERROR_TEXT}</p>}
     >
-      <p>{CHILDREN}</p>
+      <p>{CHILDREN_TEXT}</p>
     </AsyncViewContainer>,
   );
   expect(container).toHaveTextContent(
-    new RegExp(`${CHILDREN}.*${IN_PROGRESS}`),
+    new RegExp(`${CHILDREN_TEXT}.*${IN_PROGRESS_TEXT}`),
   );
   expect(container).not.toHaveTextContent(
-    new RegExp(`${IN_PROGRESS}.*${CHILDREN}`),
+    new RegExp(`${IN_PROGRESS_TEXT}.*${CHILDREN_TEXT}`),
   );
-  expect(container).not.toHaveTextContent(ERROR);
+  expect(container).not.toHaveTextContent(ERROR_TEXT);
 });
 
 it('renders only children and `inProgressRender` before it given an `InProgressAsync` and `setInProgressRenderBeforeChildren`', () => {
-  const CHILDREN = 'agjotawt';
-  const IN_PROGRESS = 'dokfesje';
-  const ERROR = 'obhiweng';
+  const CHILDREN_TEXT = 'agjotawt';
+  const IN_PROGRESS_TEXT = 'dokfesje';
+  const ERROR_TEXT = 'obhiweng';
   const { container } = render(
     <AsyncViewContainer
       asyncData={newInProgress()}
-      inProgressRender={() => <p>{IN_PROGRESS}</p>}
+      inProgressRender={() => <p>{IN_PROGRESS_TEXT}</p>}
       setInProgressRenderBeforeChildren
-      errorRender={() => <p>{ERROR}</p>}
+      errorRender={() => <p>{ERROR_TEXT}</p>}
     >
-      <p>{CHILDREN}</p>
+      <p>{CHILDREN_TEXT}</p>
     </AsyncViewContainer>,
   );
   expect(container).toHaveTextContent(
-    new RegExp(`${IN_PROGRESS}.*${CHILDREN}`),
+    new RegExp(`${IN_PROGRESS_TEXT}.*${CHILDREN_TEXT}`),
   );
   expect(container).not.toHaveTextContent(
-    new RegExp(`${CHILDREN}.*${IN_PROGRESS}`),
+    new RegExp(`${CHILDREN_TEXT}.*${IN_PROGRESS_TEXT}`),
   );
-  expect(container).not.toHaveTextContent(ERROR);
+  expect(container).not.toHaveTextContent(ERROR_TEXT);
 });
 
 it('renders only children and `errorRender` after it given an `ErrorAsync`', () => {
-  const CHILDREN = 'dehujije';
-  const IN_PROGRESS = 'vasaefmi';
-  const ERROR = 'vibelgas';
+  const CHILDREN_TEXT = 'dehujije';
+  const IN_PROGRESS_TEXT = 'vasaefmi';
+  const ERROR_TEXT = 'vibelgas';
   const { container } = render(
     <AsyncViewContainer
       asyncData={newError(new Error())}
-      inProgressRender={() => <p>{IN_PROGRESS}</p>}
-      errorRender={() => <p>{ERROR}</p>}
+      inProgressRender={() => <p>{IN_PROGRESS_TEXT}</p>}
+      errorRender={() => <p>{ERROR_TEXT}</p>}
     >
-      <p>{CHILDREN}</p>
-    </AsyncViewContainer>,
-  );
-  expect(container).toHaveTextContent(new RegExp(`${CHILDREN}.*${ERROR}`));
-  expect(container).not.toHaveTextContent(new RegExp(`${ERROR}.*${CHILDREN}`));
-  expect(container).not.toHaveTextContent(IN_PROGRESS);
-});
-
-it('renders only children and `errorRender` before it given an `ErrorAsync` and `setErrorRenderBeforeChildren`', () => {
-  const CHILDREN = 'ifipkodm';
-  const IN_PROGRESS = 'galweham';
-  const ERROR = 'gukokubi';
-  const { container } = render(
-    <AsyncViewContainer
-      asyncData={newError(new Error())}
-      inProgressRender={() => <p>{IN_PROGRESS}</p>}
-      errorRender={() => <p>{ERROR}</p>}
-      setErrorRenderBeforeChildren
-    >
-      <p>{CHILDREN}</p>
-    </AsyncViewContainer>,
-  );
-  expect(container).toHaveTextContent(new RegExp(`${ERROR}.*${CHILDREN}`));
-  expect(container).not.toHaveTextContent(new RegExp(`${CHILDREN}.*${ERROR}`));
-  expect(container).not.toHaveTextContent(IN_PROGRESS);
-});
-
-it('renders only children and `inProgressRender` after it given an array with any `InProgressAsync` and no `ErrorAsync`', () => {
-  const CHILDREN = 'kegvevlu';
-  const IN_PROGRESS = 'kafafdeh';
-  const ERROR = 'favseufp';
-  const { container } = render(
-    <AsyncViewContainer
-      asyncData={[newInit(), newInProgress()]}
-      inProgressRender={() => <p>{IN_PROGRESS}</p>}
-      errorRender={() => <p>{ERROR}</p>}
-    >
-      <p>{CHILDREN}</p>
+      <p>{CHILDREN_TEXT}</p>
     </AsyncViewContainer>,
   );
   expect(container).toHaveTextContent(
-    new RegExp(`${CHILDREN}.*${IN_PROGRESS}`),
+    new RegExp(`${CHILDREN_TEXT}.*${ERROR_TEXT}`),
   );
   expect(container).not.toHaveTextContent(
-    new RegExp(`${IN_PROGRESS}.*${CHILDREN}`),
+    new RegExp(`${ERROR_TEXT}.*${CHILDREN_TEXT}`),
   );
-  expect(container).not.toHaveTextContent(ERROR);
+  expect(container).not.toHaveTextContent(IN_PROGRESS_TEXT);
+});
+
+it('renders only children and `errorRender` before it given an `ErrorAsync` and `setErrorRenderBeforeChildren`', () => {
+  const CHILDREN_TEXT = 'ifipkodm';
+  const IN_PROGRESS_TEXT = 'galweham';
+  const ERROR_TEXT = 'gukokubi';
+  const { container } = render(
+    <AsyncViewContainer
+      asyncData={newError(new Error())}
+      inProgressRender={() => <p>{IN_PROGRESS_TEXT}</p>}
+      errorRender={() => <p>{ERROR_TEXT}</p>}
+      setErrorRenderBeforeChildren
+    >
+      <p>{CHILDREN_TEXT}</p>
+    </AsyncViewContainer>,
+  );
+  expect(container).toHaveTextContent(
+    new RegExp(`${ERROR_TEXT}.*${CHILDREN_TEXT}`),
+  );
+  expect(container).not.toHaveTextContent(
+    new RegExp(`${CHILDREN_TEXT}.*${ERROR_TEXT}`),
+  );
+  expect(container).not.toHaveTextContent(IN_PROGRESS_TEXT);
+});
+
+it('renders only children and `inProgressRender` after it given an array with any `InProgressAsync` and no `ErrorAsync`', () => {
+  const CHILDREN_TEXT = 'kegvevlu';
+  const IN_PROGRESS_TEXT = 'kafafdeh';
+  const ERROR_TEXT = 'favseufp';
+  const { container } = render(
+    <AsyncViewContainer
+      asyncData={[newInit(), newInProgress()]}
+      inProgressRender={() => <p>{IN_PROGRESS_TEXT}</p>}
+      errorRender={() => <p>{ERROR_TEXT}</p>}
+    >
+      <p>{CHILDREN_TEXT}</p>
+    </AsyncViewContainer>,
+  );
+  expect(container).toHaveTextContent(
+    new RegExp(`${CHILDREN_TEXT}.*${IN_PROGRESS_TEXT}`),
+  );
+  expect(container).not.toHaveTextContent(
+    new RegExp(`${IN_PROGRESS_TEXT}.*${CHILDREN_TEXT}`),
+  );
+  expect(container).not.toHaveTextContent(ERROR_TEXT);
 });
 
 it('renders only children and `errorRender` after it given an array with any `ErrorAsync` and no `InProgressAsync`', () => {
-  const CHILDREN = 'avejarit';
-  const IN_PROGRESS = 'tivekzio';
-  const ERROR = 'juzpecto';
+  const CHILDREN_TEXT = 'avejarit';
+  const IN_PROGRESS_TEXT = 'tivekzio';
+  const ERROR_TEXT = 'juzpecto';
   const { container } = render(
     <AsyncViewContainer
       asyncData={[newInit(), newError(new Error())]}
-      inProgressRender={() => <p>{IN_PROGRESS}</p>}
-      errorRender={() => <p>{ERROR}</p>}
+      inProgressRender={() => <p>{IN_PROGRESS_TEXT}</p>}
+      errorRender={() => <p>{ERROR_TEXT}</p>}
     >
-      <p>{CHILDREN}</p>
+      <p>{CHILDREN_TEXT}</p>
     </AsyncViewContainer>,
   );
-  expect(container).toHaveTextContent(new RegExp(`${CHILDREN}.*${ERROR}`));
-  expect(container).not.toHaveTextContent(new RegExp(`${ERROR}.*${CHILDREN}`));
-  expect(container).not.toHaveTextContent(IN_PROGRESS);
+  expect(container).toHaveTextContent(
+    new RegExp(`${CHILDREN_TEXT}.*${ERROR_TEXT}`),
+  );
+  expect(container).not.toHaveTextContent(
+    new RegExp(`${ERROR_TEXT}.*${CHILDREN_TEXT}`),
+  );
+  expect(container).not.toHaveTextContent(IN_PROGRESS_TEXT);
 });
 
 it('renders both `inProgressRender` and `errorRender`given an array with a `InProgressAsync` and a `ErrorAsync`', () => {
-  const IN_PROGRESS = 'tivekzio';
-  const ERROR = 'juzpecto';
+  const IN_PROGRESS_TEXT = 'tivekzio';
+  const ERROR_TEXT = 'juzpecto';
   const { container } = render(
     <AsyncViewContainer
       asyncData={[newInProgress(), newError(new Error())]}
-      inProgressRender={() => <p>{IN_PROGRESS}</p>}
-      errorRender={() => <p>{ERROR}</p>}
+      inProgressRender={() => <p>{IN_PROGRESS_TEXT}</p>}
+      errorRender={() => <p>{ERROR_TEXT}</p>}
     >
       <p>zubihora</p>
     </AsyncViewContainer>,
   );
-  expect(container).toHaveTextContent(IN_PROGRESS);
-  expect(container).toHaveTextContent(ERROR);
+  expect(container).toHaveTextContent(IN_PROGRESS_TEXT);
+  expect(container).toHaveTextContent(ERROR_TEXT);
 });
 
 it('renders one `errorRender` per `ErrorAsync` in the given an array', () => {
-  const ERROR_1 = 'cenafret';
-  const ERROR_2 = 'calkoagu';
-  const ERROR_3 = 'nihuugep';
+  const ERROR_1_TEXT = 'cenafret';
+  const ERROR_2_TEXT = 'calkoagu';
+  const ERROR_3_TEXT = 'nihuugep';
   const { container } = render(
     <AsyncViewContainer
       asyncData={[
-        newError(new Error(ERROR_1)),
-        newError(new Error(ERROR_2)),
-        newError(new Error(ERROR_3)),
+        newError(new Error(ERROR_1_TEXT)),
+        newError(new Error(ERROR_2_TEXT)),
+        newError(new Error(ERROR_3_TEXT)),
       ]}
       inProgressRender={null}
       errorRender={errors =>
@@ -181,36 +193,36 @@ it('renders one `errorRender` per `ErrorAsync` in the given an array', () => {
     </AsyncViewContainer>,
   );
   expect(container).toHaveTextContent(
-    new RegExp(`${ERROR_1}.*${ERROR_2}.*${ERROR_3}`),
+    new RegExp(`${ERROR_1_TEXT}.*${ERROR_2_TEXT}.*${ERROR_3_TEXT}`),
   );
 });
 
 it('renders `inProgressRender` given no `InProgressAsync` but `forceInProgress`', () => {
-  const IN_PROGRESS = 'rofmomeb';
+  const IN_PROGRESS_TEXT = 'rofmomeb';
   const { container } = render(
     <AsyncViewContainer
       asyncData={newInit()}
-      inProgressRender={() => <p>{IN_PROGRESS}</p>}
+      inProgressRender={() => <p>{IN_PROGRESS_TEXT}</p>}
       forceInProgress
       errorRender={null}
     >
       <p>ozepejhu</p>
     </AsyncViewContainer>,
   );
-  expect(container).toHaveTextContent(IN_PROGRESS);
+  expect(container).toHaveTextContent(IN_PROGRESS_TEXT);
 });
 
 it('renders `errorRender` given no `ErrorAsync` but `forceError`', () => {
-  const ERROR = 'nafbuvim';
+  const ERROR_TEXT = 'nafbuvim';
   const { container } = render(
     <AsyncViewContainer
       asyncData={newInit()}
       inProgressRender={null}
-      errorRender={() => <p>{ERROR}</p>}
+      errorRender={() => <p>{ERROR_TEXT}</p>}
       forceError={new Error()}
     >
       <p>lihasaze</p>
     </AsyncViewContainer>,
   );
-  expect(container).toHaveTextContent(ERROR);
+  expect(container).toHaveTextContent(ERROR_TEXT);
 });

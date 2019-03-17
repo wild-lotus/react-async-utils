@@ -168,7 +168,7 @@ export async function task<Payload>(
     onSuccess && onSuccess(result);
     return successAsync;
   } catch (error) {
-    if (error.name === 'AbortError') {
+    if (error && error.name === 'AbortError') {
       const abortedAsync = newInit(true);
       callback(() => abortedAsync);
       return abortedAsync;
