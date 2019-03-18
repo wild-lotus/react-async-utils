@@ -1,0 +1,15 @@
+language: node_js
+node_js:
+  - '10'
+script:
+  - npm run lint
+  - npm test
+  - npm run build
+deploy:
+  provider: npm
+  email: carlos.gines.fuster@gmail.com
+  api_key:
+    secure: QQRvylAa7hIjl28JK5LIf0nTBymk5lipjLRe69ov/57N2gSkqQKmYkJDYBsC5mHGTvG7BxyHQCB4E5RbOERTLVctGBC6sPbeJfyPDseqiB7Ne5cSBT8gLBCoGWTsnU+9z6orZkiVBREpaWdEOgW6wWLqyNmkrdaWppb7EfHP9RvM9kUzX8SM/bPuTBlPYJ8W4rzThk/ANnYAKvv3qtbg3Atg072ZRizs21NCtyj8+a2Ul0ZD7KzDAMJpRkw1AmCrenr1VitL9zXZVS6sptmNcPkUd8/rc3peCR+oMLpo0EbCa4DUkts6ml9/lop7O27+xigtOSBAxB0saEEKlkHUtwczqlYeZOMUnngOn7myu7vARq+sw9asIXUNkNWxQCvts+RuW1b+g6myZtaQY10LURt/bjFcM4CeUzRoYv4yoNzJ2uaStTAx8Kh12Em/gGL/2XbYJh+tibKDfFXiUHXscphW5GlhzqultRHFwA+dN6PTJd+payhhHbPVMDMjAiG9DIIihIhHslpNKXDbAtKcXVCB00DM8Y3dZRF5XgMCm4VdBOdvxhOJp3r7UBg7C9/KTvZvlRLylUxTjbmFwOv2L3V3tiFjXzlkuTpQZE7Z7UdTTU5bf3EfCl+CIeZeTG1ppzJZqm34Wkkub+KcE94n6Gw0vQcoSFT7azcHk7nqq1A=
+  on:
+    branch: master
+  skip_cleanup: true
