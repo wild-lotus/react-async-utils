@@ -1,6 +1,6 @@
 {
   "name": "react-async-utils",
-  "version": "0.10.1",
+  "version": "0.10.2-alpha.2",
   "description": "Collection of utils to work with asynchronous data in React in a more declarative way.",
   "keywords": [
     "async",
@@ -15,7 +15,9 @@
   ],
   "files": [
     "lib",
-    "!lib/**/*.test.*"
+    "!lib/**/*.test.*",
+    "src",
+    "!src/**/*.test.*"
   ],
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",
