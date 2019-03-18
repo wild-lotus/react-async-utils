@@ -2,6 +2,7 @@ language: node_js
 node_js:
   - '10'
 sudo: false
+if: tag IS blank
 script:
   - npm run lint
   - npm test
@@ -11,7 +12,7 @@ deploy:
   provider: npm
   email: carlos.gines.fuster@gmail.com
   api_key:
-    secure: QQRvylAa7hIjl28JK5LIf0nTBymk5lipjLRe69ov/57N2gSkqQKmYkJDYBsC5mHGTvG7BxyHQCB4E5RbOERTLVctGBC6sPbeJfyPDseqiB7Ne5cSBT8gLBCoGWTsnU+9z6orZkiVBREpaWdEOgW6wWLqyNmkrdaWppb7EfHP9RvM9kUzX8SM/bPuTBlPYJ8W4rzThk/ANnYAKvv3qtbg3Atg072ZRizs21NCtyj8+a2Ul0ZD7KzDAMJpRkw1AmCrenr1VitL9zXZVS6sptmNcPkUd8/rc3peCR+oMLpo0EbCa4DUkts6ml9/lop7O27+xigtOSBAxB0saEEKlkHUtwczqlYeZOMUnngOn7myu7vARq+sw9asIXUNkNWxQCvts+RuW1b+g6myZtaQY10LURt/bjFcM4CeUzRoYv4yoNzJ2uaStTAx8Kh12Em/gGL/2XbYJh+tibKDfFXiUHXscphW5GlhzqultRHFwA+dN6PTJd+payhhHbPVMDMjAiG9DIIihIhHslpNKXDbAtKcXVCB00DM8Y3dZRF5XgMCm4VdBOdvxhOJp3r7UBg7C9/KTvZvlRLylUxTjbmFwOv2L3V3tiFjXzlkuTpQZE7Z7UdTTU5bf3EfCl+CIeZeTG1ppzJZqm34Wkkub+KcE94n6Gw0vQcoSFT7azcHk7nqq1A=
+    secure: Xu3haiiWxhBBKpDK+gw+jJmBS+wNQ/1EJB8iLyAJVfClpYp6+tP4Lkosyzy+AHiRri1kwAI5JVwxYAblcU+wqZinRVMkABWCa/8lBAI066CT7yo6BMgPNj8ju75KksoHo2FrHdgsgn8oN6mhsWzaxx6lSD+0Y6kNnXnUaR8T9VWKbnms75iYVxbktNC3eTL4zrcOT4Bh4lW1AYlwt1xqvt9N9xtPh2g0WV4kKF67jiycxfU7E6MTTo2Y5Hbi/p8RScGrXvEw+3rr4U+xB7JgQq3WpUN/Td6+mbYh/xD3tD0LWnt+1rLX9iDK3Aq8m0ULxw8Wt6c1oahPCSgwCCOGMsoFzdRdkOQYPbvoXmbRhAWwyZsKNQy5dISpFZPMPLX2CLIqBaNXofg0Oeo+sMMq9pURXR4z+O1Zi/eGVRFREtA3nP3Oy4jy5D86vhkUP90QU8q6yYWAvqttgA4zYqgfngk758vbVu7eETxre41eUj3Gs49wW99UzsiM+MFLqaMJesZrKGxYSZ2retkMnocpWuJkAMt8L2ZWjCslX/GIEdmpb/KH4KVPLB3oS/HjN1vEuc/o2OQwCzPBWVEeC7i7/MKwPsHQjhfQzBN3O66+ccIj+c0b6mpE3fT636dVL30ZoippNSIbMT/nt8ni4ybQuE10XDoGgRMyR+X0FWo1xlA=
   on:
     branch: master
   skip_cleanup: true
