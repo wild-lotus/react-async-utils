@@ -1,3 +1,9 @@
+## 0.10.1 (Mar 18, 2019)
+
+### New features
+
+- Added Travis CI and coveralls coverage report.
+
 ## 0.10.0 (Mar 17, 2019)
 
 This is a relevant new verion. We have reached a more stable version of `useAsyncTask` hook: it finally meets `exhaustive-deps` rule, avoiding some bugs and making its API more intuitive. There are also new features regarding aborting tasks and race conditions. We have also added tests.
