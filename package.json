@@ -30,7 +30,7 @@
     "@babel/preset-typescript": "^7.3.3",
     "@types/react-dom": "^16.8.2",
     "@typescript-eslint/eslint-plugin": "^1.4.2",
-    "cross-env": "^5.2.0",
+    "coveralls": "^3.0.3",
     "eslint": "^5.15.2",
     "eslint-config-prettier": "^4.1.0",
     "eslint-plugin-jest": "^22.4.1",
@@ -50,6 +50,7 @@
     "lint": "eslint . --ext \".ts,.tsx\"",
     "watch": "tsc --watch",
     "test": "jest",
+    "coverage": "jest --coverage --coverageReporters=text-lcov | coveralls",
     "build": "tsc"
   },
   "author": "Carlos Gines <carlos.gines.fuster@gmail.com> (https://twitter.com/_carlosgines)",
