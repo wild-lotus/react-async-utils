@@ -1,13 +1,17 @@
-<h1 align="center">react-async-utils</h1>
-<p align="center">
+<div align="center">
+<h1>react-async-utils</h1>
+<a href="https://www.emojione.com/emoji/1f422"><img height="80" width="80" alt="turtle" src="https://raw.githubusercontent.com/CarlosGines/react-async-utils/master/other/turtle.png" /></a>
+
+<p>
 <a href="https://www.npmjs.com/package/react-async-utils"><img alt="npm" src="https://img.shields.io/npm/v/react-async-utils.svg"></a>
 <a href="https://travis-ci.com/CarlosGines/react-async-utils"><img alt="Travis (.com)" src="https://img.shields.io/travis/com/CarlosGines/react-async-utils.svg"></a>
 <a href="https://coveralls.io/github/CarlosGines/react-async-utils"><img alt="Coveralls github" src="https://img.shields.io/coveralls/github/CarlosGines/react-async-utils.svg"></a>
 <a href="https://snyk.io/vuln/npm:react-async-utils"><img alt="Snyk Vulnerabilities for npm package" src="https://img.shields.io/snyk/vulnerabilities/npm/react-async-utils.svg"></a>
 <a href="https://github.com/CarlosGines/react-async-utils/blob/master/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/carlosgines/react-async-utils.svg"></a>
 </p>
+</div>
 
-Collection of utils to work with asynchronous data in React in a more declarative way. Featuring an especially useful `useAsyncTask` hook. It is delightful to use with TypeScript, but it can equally be used with JavaScript.
+Collection of utils to work with asynchronous data in React in a more declarative way. Featuring `useAsyncTask` hook, especially useful to fetch data. It is delightful to use with TypeScript, but it can equally be used with JavaScript.
 
 # Table of Contents
 

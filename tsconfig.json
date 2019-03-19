@@ -11,10 +11,9 @@
     "moduleResolution": "node",
     "outDir": "lib",
     "resolveJsonModule": true,
-    "sourceMap": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "es5"
+    "target": "esnext"
   },
   "include": ["src"]
 }
