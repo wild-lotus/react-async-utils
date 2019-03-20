@@ -29,6 +29,8 @@ Collection of utils to work with asynchronous data in React in a more declarativ
     - [render](#render)
     - [AsyncViewContainer](#asyncviewcontainer)
 - [API Reference (WIP)](#api-reference-wip)
+  - [Hooks](#hooks)
+    - [`useAsyncTask`](#useasynctask)
 - [Contributing](#contributing)
 - [LICENSE](#license)
 
@@ -158,7 +160,7 @@ You can also trigger the async task automatically as an effect, providing the `t
 const [asyncPerson] = useAsyncTask(getPersonPromise, { triggerAsEffect: true });
 ```
 
-Be careful, since if you use the `triggerAsEffect` option, input functions of `useAsyncTask` hook will be dependencies of that effect. In that case you want to use `useCallback` if necessary with them to avoid infinite re-renders and infinite calls to your `getPersonPromise`.
+⚠️ Be careful, since using `triggerAsEffect` option can cause infinite loops if not handed carefully. Input functions of `useAsyncTask` hook (like `getPersonPromise` here) will become dependencies of the effect. You want to use `useCallback` if needed with them to prevent these loops.
 
 <hr/>
 
@@ -231,6 +233,55 @@ It will render the corresponding render method if _any_ `Async` data is on that 
 # API Reference (WIP)
 
 Work in progress.
+
+## Hooks
+
+### `useAsyncTask`
+
+```typescript
+function useAsyncTask<Payload>(
+  getData: (singal: AbortSignal) => Promise<Payload>,
+  {
+    triggerAsEffect,
+    onSuccess,
+    onError,
+  }: {
+    triggerAsEffect?: boolean;
+    onSuccess?: (payload: Payload) => void;
+    onError?: (error: Error) => void;
+  },
+): [Async<Payload>, () => Promise<Async<Payload>>, () => void];
+```
+
+This hook is suitable for handling any kind of async tasks, like fetching data or submitting forms. It takes care of race conditions and clean up on component unmount.
+
+- **@param `getData`**
+
+  _**You want to perform your fetch here**_. This input function is the async task that will be carried out.
+
+  It can use the `AbortSignal` that the hook provides if you want to make your task [abortable](https://developers.google.com/web/updates/2017/09/abortable-fetch).
+
+- **@param `options.triggerAsEffect`**
+
+  If true, your task will be as an effect. It will actually be run inside a `useEffect` hook.
+
+  ⚠️ Be careful, since all input functions (`getData`, `onSuccess`, `onError`) will become dependencies of the effect. You can create infinite loops if you do not hand them carefully. Wrap the input functions in `useCallback` if needed to prevent these infinite loops.
+
+- **@param `options.onSuccess`**
+
+  Callback function that will be called when the task reaches the success state.
+
+- **@param `options.onError`**
+
+  Callback function that will be called when the task reaches the error state.
+
+- **@returns**
+
+  A tuple with 3 values:
+
+  1. **The `Async` data** corresponding to the current task state.
+  2. **A _triggerAsyncTask_ function** that can be used to imperatively trigger the task (i.e. from a "Submit" or "Refresh" button). It returns a `Promise` of the resulting `Async` data. You generally won't use this `Async` data —which is a escape hatch for some imperative cases—, but the previous one —which is more declarative—.
+  3. **A _resetAsyncTask_ function** that can be used to reset the task back to the init state, aborting it if it was in progress.
 
 # Contributing
 
