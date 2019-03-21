@@ -1,5 +1,10 @@
 import React, { ReactNode } from 'react';
-import * as async from '../helpers';
+import {
+  getError,
+  isAnyInProgressOrInvalidated,
+  isError,
+  isInProgressOrInvalidated,
+} from '../helpers';
 import { Async } from '../types';
 
 interface PropsSingle {
@@ -35,17 +40,17 @@ export function AsyncViewContainer({
   setErrorRenderBeforeChildren = false,
   forceError,
   children,
-}: Props): ReactNode {
+}: Props): JSX.Element {
   const isInProgress =
     forceInProgress ||
     (Array.isArray(asyncData)
-      ? async.isAnyInProgressOrInvalidated(...asyncData)
-      : async.isInProgressOrInvalidated(asyncData));
+      ? isAnyInProgressOrInvalidated(...asyncData)
+      : isInProgressOrInvalidated(asyncData));
   const errors =
     forceError ||
     (Array.isArray(asyncData)
-      ? asyncData.filter(async.isError).map(ad => ad.error)
-      : async.getError(asyncData));
+      ? asyncData.filter(isError).map(ad => ad.error)
+      : getError(asyncData));
   return (
     <>
       {errors &&
