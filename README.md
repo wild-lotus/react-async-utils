@@ -134,7 +134,7 @@ export type Async<Payload> =
 
 This data type is the base of our library. Take your time to understand it, and we will be able to do great things with it.
 
-## useAsyncTask hook
+## `useAsyncTask` hook
 
 A powerful abstraction to manage the whole async process in a declarative way:
 

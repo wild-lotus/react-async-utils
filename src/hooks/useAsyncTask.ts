@@ -36,17 +36,21 @@ export function useAsyncTask<Payload>(
     );
   }, [getData, onError, onSuccess]);
 
-  const resetAsyncTask = useCallback((): void => {
+  const abortTask = useCallback((): void => {
     triggerIdRef.current++;
     abortControllerRef.current && abortControllerRef.current.abort();
     abortControllerRef.current = undefined;
-    setAsyncData(setInitOrAborted);
   }, []);
+
+  const resetAsyncTask = (): void => {
+    abortTask();
+    setAsyncData(setInitOrAborted);
+  };
 
   useEffect(() => {
     triggerAsEffect && triggerAsyncTask();
-    return resetAsyncTask;
-  }, [triggerAsEffect, triggerAsyncTask, resetAsyncTask]);
+    return abortTask;
+  }, [triggerAsEffect, triggerAsyncTask, abortTask]);
 
   return [asyncData, triggerAsyncTask, resetAsyncTask];
 }

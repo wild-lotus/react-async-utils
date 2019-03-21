@@ -218,3 +218,44 @@ it('prevents racing conditions', async () => {
   expect(onSuccessCallback).toHaveBeenCalledTimes(1);
   expect(onSuccessCallback).toHaveBeenCalledWith(2);
 });
+
+it('updates `SuccessAsync` data to invalidated `SuccessAsync` state after being triggered as an effect', async () => {
+  const INIT_TEXT = 'INIT_vocucluh';
+  const IN_PROGRESS_TEXT = 'IN_PROGRESS_hiepurer';
+  const PAYLOAD1_TEXT = 'PAYLOAD1_reuwagge';
+  const PAYLOAD2_TEXT = 'PAYLOAD2_zawejobr';
+  const INVALIDATED_TEXT = 'INVALIDATED_zaluwobu';
+  const children = asyncData => (
+    <>
+      {asyncRender(asyncData, {
+        init: () => INIT_TEXT,
+        inProgress: () => IN_PROGRESS_TEXT,
+        success: (payload, invalidated) =>
+          invalidated ? INVALIDATED_TEXT : payload,
+      })}
+    </>
+  );
+  // const PAYLOAD = 'PAYLOAD_ezhihnoi';
+  const { container, rerender } = testingRender(
+    <UseAsyncTaskComponent
+      getData={() => Promise.resolve(PAYLOAD1_TEXT)}
+      options={{ triggerAsEffect: true }}
+    >
+      {children}
+    </UseAsyncTaskComponent>,
+  );
+  expect(container).toHaveTextContent(IN_PROGRESS_TEXT);
+  await wait();
+  expect(container).toHaveTextContent(PAYLOAD1_TEXT);
+  rerender(
+    <UseAsyncTaskComponent
+      getData={() => Promise.resolve(PAYLOAD2_TEXT)}
+      options={{ triggerAsEffect: true }}
+    >
+      {children}
+    </UseAsyncTaskComponent>,
+  );
+  expect(container).toHaveTextContent(INVALIDATED_TEXT);
+  await wait();
+  expect(container).toHaveTextContent(PAYLOAD2_TEXT);
+});
