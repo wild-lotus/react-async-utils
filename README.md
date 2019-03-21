@@ -240,7 +240,7 @@ Work in progress.
 
 ```typescript
 function useAsyncTask<Payload>(
-  getData: (singal: AbortSignal) => Promise<Payload>,
+  getData: (singal?: AbortSignal) => Promise<Payload>,
   {
     triggerAsEffect,
     onSuccess,
@@ -259,7 +259,7 @@ This hook is suitable for handling any kind of async tasks, like fetching data o
 
   _**You want to perform your fetch here**_. This input function is the async task that will be carried out.
 
-  It can use the `AbortSignal` that the hook provides if you want to make your task [abortable](https://developers.google.com/web/updates/2017/09/abortable-fetch).
+  It can use the `AbortSignal` that the hook provides (when browser supports it) if you want to make your task [abortable](https://developers.google.com/web/updates/2017/09/abortable-fetch).
 
 - **@param `options.triggerAsEffect`**
 
