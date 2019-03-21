@@ -1,3 +1,13 @@
+## 0.10.3 (Mar 21, 2019)
+
+### 🐛 Bug fixes
+
+- Fixed bug in `AsyncViewContainer` return type, preventing Typescript compilation.
+
+### 📝 Documentation
+
+- Added `useAsyncTask` to API Reference in README.
+
 ## 0.10.2 (Mar 19, 2019)
 
 ### 🚀 New features
