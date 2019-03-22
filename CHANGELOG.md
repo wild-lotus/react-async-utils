@@ -1,3 +1,18 @@
+## 0.11.0 (Mar 22, 2019)
+
+### 💥 Breaking changes
+
+- The `AbortSignal` that `useAsyncTask` provides as input parameter of the input function, is now optional. This is because its availability depends on browser compatibility.
+
+### 🐛 Bug fixes
+
+- Fixed broken IE compatibility because of `AbortController`.
+- Fixed undesired transition from `SuccessAsync` to `InProgressAsync` when the task from `useAsyncTask` is triggered as an effect. Now it transitions to an invalidated `SuccessAsync`.
+
+### 📝 Documentation
+
+- Updated `useAsyncTask` in API Reference in README.
+
 ## 0.10.3 (Mar 21, 2019)
 
 ### 🐛 Bug fixes
