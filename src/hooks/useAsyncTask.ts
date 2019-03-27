@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   AsyncTaskOptions,
   newInit,
@@ -9,16 +9,16 @@ import { Async } from '../types';
 
 const ABORT_DEFINED = typeof AbortController !== 'undefined';
 
-export function useAsyncTask<Result, Args extends unknown[]>(
-  getTask: (singal?: AbortSignal) => (...args: Args) => Promise<Result>,
-  options?: AsyncTaskOptions<Result>,
-): [Async<Result>, (...args: Args) => Promise<Async<Result>>, () => void] {
-  const [asyncResult, setAsyncResult] = useState<Async<Result>>(newInit());
+export function useAsyncTask<Payload, Args extends unknown[]>(
+  getTask: (singal?: AbortSignal) => (...args: Args) => Promise<Payload>,
+  options?: AsyncTaskOptions<Payload>,
+): [Async<Payload>, (...args: Args) => Promise<Async<Payload>>, () => void] {
+  const [asyncPayload, setAsyncPayload] = useState<Async<Payload>>(newInit());
 
   const triggerIdRef = useRef(0);
   const abortControllerRef = useRef<AbortController>();
 
-  const triggerAsyncTask = async (...args: Args): Promise<Async<Result>> => {
+  const triggerAsyncTask = async (...args: Args): Promise<Async<Payload>> => {
     triggerIdRef.current++;
     const triggerId = triggerIdRef.current;
     abortControllerRef.current && abortControllerRef.current.abort();
@@ -28,7 +28,7 @@ export function useAsyncTask<Result, Args extends unknown[]>(
       () => getTask(abortController && abortController.signal)(...args),
       setNewAsyncData => {
         if (triggerId === triggerIdRef.current) {
-          setAsyncResult(setNewAsyncData);
+          setAsyncPayload(setNewAsyncData);
         } else {
           return true;
         }
@@ -41,8 +41,10 @@ export function useAsyncTask<Result, Args extends unknown[]>(
     triggerIdRef.current++;
     abortControllerRef.current && abortControllerRef.current.abort();
     abortControllerRef.current = undefined;
-    setAsyncResult(setInitOrAborted);
+    setAsyncPayload(setInitOrAborted);
   };
 
-  return [asyncResult, triggerAsyncTask, abortAsyncTask];
+  useEffect(() => abortAsyncTask, []);
+
+  return [asyncPayload, triggerAsyncTask, abortAsyncTask];
 }
