@@ -56,6 +56,8 @@ export function useAsyncData<Payload>(
     if (enabled) {
       triggerGetData();
       return abortGetData;
+    } else {
+      setAsyncData(setInitOrAborted);
     }
   }, [enabled, triggerGetData, abortGetData]);
 

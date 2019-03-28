@@ -112,9 +112,11 @@ it('does not update async data state if not enabled', async () => {
 });
 
 it('stops updating async data after disabled', async () => {
+  const INIT_TEXT = 'INIT_puzmesoj';
   const IN_PROGRESS_TEXT = 'IN_PROGRESS_wonillug';
   const children = asyncData =>
     asyncRender(asyncData, {
+      init: () => INIT_TEXT,
       inProgress: () => IN_PROGRESS_TEXT,
     });
   const { container, rerender } = testingRender(
@@ -131,7 +133,7 @@ it('stops updating async data after disabled', async () => {
       {children}
     </UseAsyncDataComponent>,
   );
-  expect(container).toHaveTextContent(IN_PROGRESS_TEXT);
+  expect(container).toHaveTextContent(INIT_TEXT);
 });
 
 it('updates async data to `InitAsync` and aborted `InitAsync` state and fires the `abort` event of the `AbortSignal` after being reset', async () => {
