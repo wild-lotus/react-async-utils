@@ -43,14 +43,12 @@ it('updates async data up to `SuccessAsync` state and invokes `onSuccess` callba
       getData={() => Promise.resolve(PAYLOAD)}
       options={{ onSuccess: onSuccessCallback }}
     >
-      {asyncData => (
-        <>
-          {asyncRender(asyncData, {
-            inProgress: () => IN_PROGRESS_TEXT,
-            success: () => SUCCESS_TEXT,
-          })}
-        </>
-      )}
+      {asyncData =>
+        asyncRender(asyncData, {
+          inProgress: () => IN_PROGRESS_TEXT,
+          success: () => SUCCESS_TEXT,
+        })
+      }
     </UseAsyncDataComponent>,
   );
   expect(container).toHaveTextContent(IN_PROGRESS_TEXT);
@@ -71,14 +69,12 @@ it('updates async data up to `ErrorAsync` state and invokes `onError` callback',
       getData={() => Promise.reject(ERROR)}
       options={{ onError: onErrorCallback }}
     >
-      {asyncData => (
-        <>
-          {asyncRender(asyncData, {
-            inProgress: () => IN_PROGRESS_TEXT,
-            error: () => ERROR_TEXT,
-          })}
-        </>
-      )}
+      {asyncData =>
+        asyncRender(asyncData, {
+          inProgress: () => IN_PROGRESS_TEXT,
+          error: () => ERROR_TEXT,
+        })
+      }
     </UseAsyncDataComponent>,
   );
   expect(container).toHaveTextContent(IN_PROGRESS_TEXT);
@@ -117,13 +113,10 @@ it('does not update async data state if not enabled', async () => {
 
 it('stops updating async data after disabled', async () => {
   const IN_PROGRESS_TEXT = 'IN_PROGRESS_wonillug';
-  const children = asyncData => (
-    <>
-      {asyncRender(asyncData, {
-        inProgress: () => IN_PROGRESS_TEXT,
-      })}
-    </>
-  );
+  const children = asyncData =>
+    asyncRender(asyncData, {
+      inProgress: () => IN_PROGRESS_TEXT,
+    });
   const { container, rerender } = testingRender(
     <UseAsyncDataComponent getData={() => Promise.resolve()}>
       {children}
@@ -205,12 +198,10 @@ it('prevents racing conditions', async () => {
       options={{ onSuccess: onSuccessCallback }}
     >
       {(asyncData, triggerAsycTask) => (
-        <>
-          <button
-            onClick={triggerAsycTask}
-            data-testid={TRIGGER_BUTTON_TEST_ID}
-          />
-        </>
+        <button
+          onClick={triggerAsycTask}
+          data-testid={TRIGGER_BUTTON_TEST_ID}
+        />
       )}
     </UseAsyncDataComponent>,
   );
@@ -226,33 +217,30 @@ it('prevents racing conditions', async () => {
 it('updates `SuccessAsync` data to invalidated `SuccessAsync` state after being re-triggered as an effect', async () => {
   const INIT_TEXT = 'INIT_vocucluh';
   const IN_PROGRESS_TEXT = 'IN_PROGRESS_hiepurer';
-  const PAYLOAD1_TEXT = 'PAYLOAD1_reuwagge';
-  const PAYLOAD2_TEXT = 'PAYLOAD2_zawejobr';
+  const PAYLOAD_1 = 'PAYLOAD_1_reuwagge';
+  const PAYLOAD_2 = 'PAYLOAD_2_zawejobr';
   const INVALIDATED_TEXT = 'INVALIDATED_zaluwobu';
-  const children = asyncData => (
-    <>
-      {asyncRender(asyncData, {
-        init: () => INIT_TEXT,
-        inProgress: () => IN_PROGRESS_TEXT,
-        success: (payload, invalidated) =>
-          invalidated ? INVALIDATED_TEXT : payload,
-      })}
-    </>
-  );
+  const children = asyncData =>
+    asyncRender(asyncData, {
+      init: () => INIT_TEXT,
+      inProgress: () => IN_PROGRESS_TEXT,
+      success: (payload, invalidated) =>
+        invalidated ? INVALIDATED_TEXT : payload,
+    });
   const { container, rerender } = testingRender(
-    <UseAsyncDataComponent getData={() => Promise.resolve(PAYLOAD1_TEXT)}>
+    <UseAsyncDataComponent getData={() => Promise.resolve(PAYLOAD_1)}>
       {children}
     </UseAsyncDataComponent>,
   );
   expect(container).toHaveTextContent(IN_PROGRESS_TEXT);
   await wait();
-  expect(container).toHaveTextContent(PAYLOAD1_TEXT);
+  expect(container).toHaveTextContent(PAYLOAD_1);
   rerender(
-    <UseAsyncDataComponent getData={() => Promise.resolve(PAYLOAD2_TEXT)}>
+    <UseAsyncDataComponent getData={() => Promise.resolve(PAYLOAD_2)}>
       {children}
     </UseAsyncDataComponent>,
   );
   expect(container).toHaveTextContent(INVALIDATED_TEXT);
   await wait();
-  expect(container).toHaveTextContent(PAYLOAD2_TEXT);
+  expect(container).toHaveTextContent(PAYLOAD_2);
 });
