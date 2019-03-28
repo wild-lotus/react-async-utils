@@ -85,13 +85,13 @@ it('updates async data up to `ErrorAsync` state and invokes `onError` callback',
   expect(onErrorCallback).toHaveBeenCalledWith(ERROR);
 });
 
-it('does not update async data state if not enabled', async () => {
+it('does not update async data state if disabled', async () => {
   const TRIGGER_BUTTON_TEST_ID = 'gohsuzog';
   const INIT_TEXT = 'INIT_uddokbof';
   const { container, getByTestId } = testingRender(
     <UseAsyncDataComponent
       getData={() => Promise.rejectresolve()}
-      options={{ enabled: false }}
+      options={{ disabled: true }}
     >
       {(asyncData, triggerGetData) => (
         <>
@@ -128,7 +128,7 @@ it('stops updating async data after disabled', async () => {
   rerender(
     <UseAsyncDataComponent
       getData={() => Promise.resolve()}
-      options={{ enabled: false }}
+      options={{ disabled: true }}
     >
       {children}
     </UseAsyncDataComponent>,

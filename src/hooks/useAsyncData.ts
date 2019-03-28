@@ -7,12 +7,12 @@ const ABORT_DEFINED = typeof AbortController !== 'undefined';
 interface UseAsyncDataOptions<Payload> {
   onSuccess?: ((payload: Payload) => void) | undefined;
   onError?: ((error: Error) => void) | undefined;
-  enabled?: boolean;
+  disabled?: boolean;
 }
 
 export function useAsyncData<Payload>(
   getData: (singal?: AbortSignal) => Promise<Payload>,
-  { onSuccess, onError, enabled = true }: UseAsyncDataOptions<Payload> = {},
+  { onSuccess, onError, disabled }: UseAsyncDataOptions<Payload> = {},
 ): [Async<Payload>, () => void, () => void] {
   const [asyncData, setAsyncData] = useState<Async<Payload>>(newInit());
 
@@ -20,7 +20,7 @@ export function useAsyncData<Payload>(
   const abortControllerRef = useRef<AbortController>();
 
   const triggerGetData = useCallback(async (): Promise<void> => {
-    if (!enabled) {
+    if (disabled) {
       return;
     }
     triggerIdRef.current++;
@@ -39,7 +39,7 @@ export function useAsyncData<Payload>(
       },
       { onSuccess, onError },
     );
-  }, [enabled, getData, onError, onSuccess]);
+  }, [disabled, getData, onError, onSuccess]);
 
   const abortGetData = useCallback((): void => {
     triggerIdRef.current++;
@@ -53,13 +53,13 @@ export function useAsyncData<Payload>(
   };
 
   useEffect(() => {
-    if (enabled) {
+    if (disabled) {
+      setAsyncData(setInitOrAborted);
+    } else {
       triggerGetData();
       return abortGetData;
-    } else {
-      setAsyncData(setInitOrAborted);
     }
-  }, [enabled, triggerGetData, abortGetData]);
+  }, [disabled, triggerGetData, abortGetData]);
 
   return [asyncData, triggerGetData, resetAsyncData];
 }

@@ -261,11 +261,11 @@ Work in progress.
 function useAsyncData<Payload>(
   getData: (singal?: AbortSignal) => Promise<Payload>,
   {
-    enabled,
+    disabled,
     onSuccess,
     onError,
   }: {
-    enabled?: boolean;
+    disabled?: boolean;
     onSuccess?: (payload: Payload) => void;
     onError?: (error: Error) => void;
   },
@@ -282,9 +282,9 @@ This hook is suitable for handling any kind of querying or data fetching tasks. 
 
   It can use the `AbortSignal` that the hook provides (when browser supports it) if you want to make your task [abortable](https://developers.google.com/web/updates/2017/09/abortable-fetch).
 
-- **@param `options.enabled`** (default `true`)
+- **@param `options.disabled`**
 
-  While true, your task will be run as an effect (inside a `useEffect` hook) and via manual triggers (with the returned "trigger" function). If false, it will not run effect nor via manual triggers.
+  While false (default), your task will be run as an effect (inside a `useEffect` hook) and via manual triggers  (with the returned "trigger" function). If true, your task will not be run as an effect nor via manual triggers.
 
 - **@param `options.onSuccess`**
 
