@@ -33,15 +33,14 @@ function getAbortablePromise({
   });
 }
 
-it('updates async data up to `SuccessAsync` state after being triggered and invokes `onSuccess` callback', async () => {
+it('updates async data up to `SuccessAsync` state and invokes `onSuccess` callback', async () => {
   const IN_PROGRESS_TEXT = 'IN_PROGRESS_bonihzes';
   const SUCCESS_TEXT = 'SUCCESS_ukejemuo';
   const PAYLOAD = 'PAYLOAD_ezhihnoi';
   const onSuccessCallback = jest.fn();
-  const getData = () => Promise.resolve(PAYLOAD);
   const { container } = testingRender(
     <UseAsyncDataComponent
-      getData={getData}
+      getData={() => Promise.resolve(PAYLOAD)}
       options={{ onSuccess: onSuccessCallback }}
     >
       {asyncData => (
@@ -62,15 +61,14 @@ it('updates async data up to `SuccessAsync` state after being triggered and invo
   expect(onSuccessCallback).toHaveBeenCalledWith(PAYLOAD);
 });
 
-it('updates async data up to `ErrorAsync` state after being triggered and invokes `onError` callback', async () => {
+it('updates async data up to `ErrorAsync` state and invokes `onError` callback', async () => {
   const IN_PROGRESS_TEXT = 'IN_PROGRESS_tokunalf';
   const ERROR_TEXT = 'ERROR_vaowdenz';
   const ERROR = new Error();
   const onErrorCallback = jest.fn();
-  const getData = () => Promise.reject(ERROR);
   const { container } = testingRender(
     <UseAsyncDataComponent
-      getData={getData}
+      getData={() => Promise.reject(ERROR)}
       options={{ onError: onErrorCallback }}
     >
       {asyncData => (
@@ -91,30 +89,59 @@ it('updates async data up to `ErrorAsync` state after being triggered and invoke
   expect(onErrorCallback).toHaveBeenCalledWith(ERROR);
 });
 
-// it('updates async data state as an effect', async () => {
-//   const IN_PROGRESS_TEXT = 'IN_PROGRESS_uddokbof';
-//   const SUCCESS_TEXT = 'SUCCESS_efemibes';
-//   const { container } = testingRender(
-//     <UseAsyncDataComponent
-//       getData={() => Promise.resolve()}
-//       options={{ triggerAsEffect: true }}
-//     >
-//       {asyncData => (
-//         <>
-//           {asyncRender(asyncData, {
-//             inProgress: () => IN_PROGRESS_TEXT,
-//             success: () => SUCCESS_TEXT,
-//           })}
-//         </>
-//       )}
-//     </UseAsyncDataComponent>,
-//   );
-//   expect(container).toHaveTextContent(IN_PROGRESS_TEXT);
-//   await wait();
-//   expect(container).toHaveTextContent(SUCCESS_TEXT);
-// });
+it('does not update async data state if not enabled', async () => {
+  const TRIGGER_BUTTON_TEST_ID = 'gohsuzog';
+  const INIT_TEXT = 'INIT_uddokbof';
+  const { container, getByTestId } = testingRender(
+    <UseAsyncDataComponent
+      getData={() => Promise.rejectresolve()}
+      options={{ enabled: false }}
+    >
+      {(asyncData, triggerGetData) => (
+        <>
+          {asyncRender(asyncData, { init: () => INIT_TEXT })}
+          <button
+            onClick={triggerGetData}
+            data-testid={TRIGGER_BUTTON_TEST_ID}
+          />
+        </>
+      )}
+    </UseAsyncDataComponent>,
+  );
+  expect(container).toHaveTextContent(INIT_TEXT);
+  await wait();
+  expect(container).toHaveTextContent(INIT_TEXT);
+  fireEvent.click(getByTestId(TRIGGER_BUTTON_TEST_ID));
+  expect(container).toHaveTextContent(INIT_TEXT);
+});
 
-it('updates async data to `InitAsync` or aborted `InitAsync` state and fires the provided `AbortSignal` after being reset', async () => {
+it('stops updating async data after disabled', async () => {
+  const IN_PROGRESS_TEXT = 'IN_PROGRESS_wonillug';
+  const children = asyncData => (
+    <>
+      {asyncRender(asyncData, {
+        inProgress: () => IN_PROGRESS_TEXT,
+      })}
+    </>
+  );
+  const { container, rerender } = testingRender(
+    <UseAsyncDataComponent getData={() => Promise.resolve()}>
+      {children}
+    </UseAsyncDataComponent>,
+  );
+  expect(container).toHaveTextContent(IN_PROGRESS_TEXT);
+  rerender(
+    <UseAsyncDataComponent
+      getData={() => Promise.resolve()}
+      options={{ enabled: false }}
+    >
+      {children}
+    </UseAsyncDataComponent>,
+  );
+  expect(container).toHaveTextContent(IN_PROGRESS_TEXT);
+});
+
+it('updates async data to `InitAsync` and aborted `InitAsync` state and fires the `abort` event of the `AbortSignal` after being reset', async () => {
   const TRIGGER_BUTTON_TEST_ID = 'wivalcij';
   const RESET_BUTTON_TEST_ID = 'kusjiuck';
   const INIT_TEXT = 'INIT_ohihuwda';
@@ -122,11 +149,13 @@ it('updates async data to `InitAsync` or aborted `InitAsync` state and fires the
   const IN_PROGRESS_TEXT = 'IN_PROGRESS_bizkopoz';
   const SUCCESS_TEXT = 'SUCCESS_wukdaajo';
   const onAbortCallback = jest.fn();
-  const getData = signal =>
-    getAbortablePromise({ resolveWith: null, signal, onAbortCallback });
 
   const { container, getByTestId } = testingRender(
-    <UseAsyncDataComponent getData={getData}>
+    <UseAsyncDataComponent
+      getData={signal =>
+        getAbortablePromise({ resolveWith: null, signal, onAbortCallback })
+      }
+    >
       {(asyncData, triggerGetData, resetAsyncData) => (
         <>
           <button
@@ -162,18 +191,17 @@ it('prevents racing conditions', async () => {
   const onSuccessCallback = jest.fn();
   const onAbortCallback = jest.fn();
   let counter = 1;
-  const getData = signal => {
-    const payload = counter;
-    counter++;
-    return getAbortablePromise({
-      resolveWith: payload,
-      signal,
-      onAbortCallback,
-    });
-  };
   const { getByTestId } = testingRender(
     <UseAsyncDataComponent
-      getData={getData}
+      getData={signal => {
+        const payload = counter;
+        counter++;
+        return getAbortablePromise({
+          resolveWith: payload,
+          signal,
+          onAbortCallback,
+        });
+      }}
       options={{ onSuccess: onSuccessCallback }}
     >
       {(asyncData, triggerAsycTask) => (
@@ -195,14 +223,12 @@ it('prevents racing conditions', async () => {
   expect(onSuccessCallback).toHaveBeenCalledWith(2);
 });
 
-it('updates `SuccessAsync` data to invalidated `SuccessAsync` state after being triggered as an effect', async () => {
+it('updates `SuccessAsync` data to invalidated `SuccessAsync` state after being re-triggered as an effect', async () => {
   const INIT_TEXT = 'INIT_vocucluh';
   const IN_PROGRESS_TEXT = 'IN_PROGRESS_hiepurer';
   const PAYLOAD1_TEXT = 'PAYLOAD1_reuwagge';
   const PAYLOAD2_TEXT = 'PAYLOAD2_zawejobr';
   const INVALIDATED_TEXT = 'INVALIDATED_zaluwobu';
-  const getData1 = () => Promise.resolve(PAYLOAD1_TEXT);
-  const getData2 = () => Promise.resolve(PAYLOAD2_TEXT);
   const children = asyncData => (
     <>
       {asyncRender(asyncData, {
@@ -214,7 +240,7 @@ it('updates `SuccessAsync` data to invalidated `SuccessAsync` state after being 
     </>
   );
   const { container, rerender } = testingRender(
-    <UseAsyncDataComponent getData={getData1}>
+    <UseAsyncDataComponent getData={() => Promise.resolve(PAYLOAD1_TEXT)}>
       {children}
     </UseAsyncDataComponent>,
   );
@@ -222,7 +248,7 @@ it('updates `SuccessAsync` data to invalidated `SuccessAsync` state after being 
   await wait();
   expect(container).toHaveTextContent(PAYLOAD1_TEXT);
   rerender(
-    <UseAsyncDataComponent getData={getData2}>
+    <UseAsyncDataComponent getData={() => Promise.resolve(PAYLOAD2_TEXT)}>
       {children}
     </UseAsyncDataComponent>,
   );
