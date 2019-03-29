@@ -1,33 +1,54 @@
-import React from 'react';
+import React, { ReactNode, ReactElement } from 'react';
 import {
   cleanup,
   fireEvent,
   render as testingRender,
   wait,
 } from 'react-testing-library';
-import { useAsyncData } from './useAsyncData';
 import { render as asyncRender } from '../render';
+import { Async } from '../types';
+import { useAsyncData, UseAsyncDataOptions } from './useAsyncData';
 
 afterEach(cleanup);
 
-function UseAsyncDataComponent({ getData, options, children }) {
-  return children(...useAsyncData(getData, options));
+interface Props<Payload> {
+  getData: (singal?: AbortSignal) => Promise<Payload>;
+  options?: UseAsyncDataOptions<Payload>;
+  children: (
+    asyncData: Async<Payload>,
+    refreshData: () => void,
+    resetData: () => void,
+  ) => ReactNode;
 }
 
-function getAbortablePromise({
+function UseAsyncDataComponent<Payload>({
+  getData,
+  options,
+  children,
+}: Props<Payload>): ReactElement {
+  return <>{children(...useAsyncData(getData, options))}</>;
+}
+
+function getAbortablePromise<Payload>({
   resolveWith,
   rejectWith,
   signal,
   onAbortCallback,
-}) {
-  if (signal.aborted) {
+}: {
+  resolveWith?: Payload;
+  rejectWith?: Error;
+  signal: AbortSignal | undefined;
+  onAbortCallback: () => void;
+}): Promise<Payload> {
+  if (signal && signal.aborted) {
     return Promise.reject(new DOMException('Aborted', 'AbortError'));
   }
   return new Promise((resolve, reject) => {
-    signal.addEventListener('abort', () => {
-      onAbortCallback && onAbortCallback();
-      reject(new DOMException('Aborted', 'AbortError'));
-    });
+    signal &&
+      signal.addEventListener('abort', () => {
+        onAbortCallback && onAbortCallback();
+        reject(new DOMException('Aborted', 'AbortError'));
+      });
     resolveWith !== undefined && resolve(resolveWith);
     rejectWith !== undefined && reject(rejectWith);
   });
@@ -90,7 +111,7 @@ it('does not update async data state if disabled', async () => {
   const INIT_TEXT = 'INIT_uddokbof';
   const { container, getByTestId } = testingRender(
     <UseAsyncDataComponent
-      getData={() => Promise.rejectresolve()}
+      getData={() => Promise.resolve()}
       options={{ disabled: true }}
     >
       {(asyncData, triggerGetData) => (
@@ -114,11 +135,12 @@ it('does not update async data state if disabled', async () => {
 it('stops updating async data after disabled', async () => {
   const INIT_TEXT = 'INIT_puzmesoj';
   const IN_PROGRESS_TEXT = 'IN_PROGRESS_wonillug';
-  const children = asyncData =>
-    asyncRender(asyncData, {
+  const children = function<Payload>(asyncData: Async<Payload>): ReactNode {
+    return asyncRender(asyncData, {
       init: () => INIT_TEXT,
       inProgress: () => IN_PROGRESS_TEXT,
     });
+  };
   const { container, rerender } = testingRender(
     <UseAsyncDataComponent getData={() => Promise.resolve()}>
       {children}
@@ -148,7 +170,7 @@ it('updates async data to `InitAsync` and aborted `InitAsync` state and fires th
   const { container, getByTestId } = testingRender(
     <UseAsyncDataComponent
       getData={signal =>
-        getAbortablePromise({ resolveWith: null, signal, onAbortCallback })
+        getAbortablePromise({ resolveWith: {}, signal, onAbortCallback })
       }
     >
       {(asyncData, triggerGetData, resetAsyncData) => (
@@ -222,13 +244,14 @@ it('updates `SuccessAsync` data to invalidated `SuccessAsync` state after being 
   const PAYLOAD_1 = 'PAYLOAD_1_reuwagge';
   const PAYLOAD_2 = 'PAYLOAD_2_zawejobr';
   const INVALIDATED_TEXT = 'INVALIDATED_zaluwobu';
-  const children = asyncData =>
-    asyncRender(asyncData, {
+  const children = function<Payload>(asyncData: Async<Payload>): ReactNode {
+    return asyncRender(asyncData, {
       init: () => INIT_TEXT,
       inProgress: () => IN_PROGRESS_TEXT,
       success: (payload, invalidated) =>
         invalidated ? INVALIDATED_TEXT : payload,
     });
+  };
   const { container, rerender } = testingRender(
     <UseAsyncDataComponent getData={() => Promise.resolve(PAYLOAD_1)}>
       {children}

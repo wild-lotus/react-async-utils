@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, ReactElement } from 'react';
 import {
   getError,
   isAnyInProgressOrInvalidated,
@@ -40,7 +40,7 @@ export function AsyncViewContainer({
   setErrorRenderBeforeChildren = false,
   forceError,
   children,
-}: Props): JSX.Element {
+}: Props): ReactElement {
   const isInProgress =
     forceInProgress ||
     (Array.isArray(asyncData)

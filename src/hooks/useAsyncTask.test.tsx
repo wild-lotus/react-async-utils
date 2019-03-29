@@ -1,34 +1,55 @@
-import React from 'react';
+import React, { ReactElement, ReactNode } from 'react';
 import {
   cleanup,
   fireEvent,
   render as testingRender,
   wait,
 } from 'react-testing-library';
-import { useAsyncTask } from './useAsyncTask';
-import { render as asyncRender } from '../render';
 import { isSuccess, getPayload, getError, isError } from '../helpers';
+import { render as asyncRender } from '../render';
+import { Async } from '../types';
+import { useAsyncTask, UseAsyncTaskOptions } from './useAsyncTask';
 
 afterEach(cleanup);
 
-function UseAsyncTaskComponent({ getTask, options, children }) {
-  return children(...useAsyncTask(getTask, options));
+interface Props<Payload, Args extends unknown[]> {
+  getTask: (singal?: AbortSignal) => (...args: Args) => Promise<Payload>;
+  options?: UseAsyncTaskOptions<Payload>;
+  children: (
+    asyncData: Async<Payload>,
+    triggerAsyncTask: (...args: Args) => Promise<Async<Payload>>,
+    abortAsyncTask: () => void,
+  ) => ReactNode;
 }
 
-function getAbortablePromise({
+function UseAsyncTaskComponent<Payload, Args extends unknown[]>({
+  getTask,
+  options,
+  children,
+}: Props<Payload, Args>): ReactElement {
+  return <>{children(...useAsyncTask(getTask, options))}</>;
+}
+
+function getAbortablePromise<Payload>({
   resolveWith,
   rejectWith,
   signal,
   onAbortCallback,
-}) {
-  if (signal.aborted) {
+}: {
+  resolveWith?: Payload;
+  rejectWith?: Error;
+  signal: AbortSignal | undefined;
+  onAbortCallback: () => void;
+}): Promise<Payload> {
+  if (signal && signal.aborted) {
     return Promise.reject(new DOMException('Aborted', 'AbortError'));
   }
   return new Promise((resolve, reject) => {
-    signal.addEventListener('abort', () => {
-      onAbortCallback && onAbortCallback();
-      reject(new DOMException('Aborted', 'AbortError'));
-    });
+    signal &&
+      signal.addEventListener('abort', () => {
+        onAbortCallback && onAbortCallback();
+        reject(new DOMException('Aborted', 'AbortError'));
+      });
     resolveWith !== undefined && resolve(resolveWith);
     rejectWith !== undefined && reject(rejectWith);
   });
@@ -156,7 +177,7 @@ it('updates async data to `InitAsync` and aborted `InitAsync` state and fires th
   const { container, getByTestId } = testingRender(
     <UseAsyncTaskComponent
       getTask={signal => () =>
-        getAbortablePromise({ resolveWith: null, signal, onAbortCallback })}
+        getAbortablePromise({ resolveWith: {}, signal, onAbortCallback })}
     >
       {(asyncData, triggerAsyncTask, abortAsyncTask) => (
         <>
@@ -234,24 +255,29 @@ it('updates `SuccessAsync` data to invalidated `SuccessAsync` state after being 
   const PAYLOAD_1 = 'PAYLOAD_1_fozkeuje';
   const PAYLOAD_2 = 'PAYLOAD_2_lividtel';
   const INVALIDATED_TEXT = 'INVALIDATED_buapioru';
-  const children = (asyncData, triggerAsycTask) => (
-    <>
-      {asyncRender(asyncData, {
-        init: () => INIT_TEXT,
-        inProgress: () => IN_PROGRESS_TEXT,
-        success: (payload, invalidated) =>
-          invalidated ? INVALIDATED_TEXT : payload,
-      })}
-      <button
-        onClick={() => triggerAsycTask(PAYLOAD_1)}
-        data-testid={TRIGGER_BUTTON_1_TEST_ID}
-      />
-      <button
-        onClick={() => triggerAsycTask(PAYLOAD_2)}
-        data-testid={TRIGGER_BUTTON_2_TEST_ID}
-      />
-    </>
-  );
+  const children = function(
+    asyncData: Async<string>,
+    triggerAsyncTask: (payload: string) => Promise<Async<string>>,
+  ): ReactNode {
+    return (
+      <>
+        {asyncRender(asyncData, {
+          init: () => INIT_TEXT,
+          inProgress: () => IN_PROGRESS_TEXT,
+          success: (payload, invalidated) =>
+            invalidated ? INVALIDATED_TEXT : payload,
+        })}
+        <button
+          onClick={() => triggerAsyncTask(PAYLOAD_1)}
+          data-testid={TRIGGER_BUTTON_1_TEST_ID}
+        />
+        <button
+          onClick={() => triggerAsyncTask(PAYLOAD_2)}
+          data-testid={TRIGGER_BUTTON_2_TEST_ID}
+        />
+      </>
+    );
+  };
   const { container, getByTestId } = testingRender(
     <UseAsyncTaskComponent getTask={() => payload => Promise.resolve(payload)}>
       {children}

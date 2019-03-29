@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { newInit, triggerTask, setInitOrAborted } from '../helpers';
+import {
+  AsyncTaskOptions,
+  newInit,
+  triggerTask,
+  setInitOrAborted,
+} from '../helpers';
 import { Async } from '../types';
 
 const ABORT_DEFINED = typeof AbortController !== 'undefined';
 
-interface UseAsyncDataOptions<Payload> {
-  onSuccess?: ((payload: Payload) => void) | undefined;
-  onError?: ((error: Error) => void) | undefined;
+export interface UseAsyncDataOptions<Payload>
+  extends AsyncTaskOptions<Payload> {
   disabled?: boolean;
 }
 
