@@ -284,7 +284,7 @@ This hook is suitable for handling any kind of querying or data fetching tasks. 
 
 - **@param `options.disabled`**
 
-  While false (default), your task will be run as an effect (inside a `useEffect` hook) and via manual triggers  (with the returned "trigger" function). If true, your task will not be run as an effect nor via manual triggers.
+  While false (default), your task will be run as an effect (inside a `useEffect` hook) and via manual triggers (with the returned "trigger" function). If true, your task will not be run as an effect nor via manual triggers.
 
 - **@param `options.onSuccess`**
 
@@ -299,7 +299,7 @@ This hook is suitable for handling any kind of querying or data fetching tasks. 
   A tuple with 3 values:
 
   1. **The `Async` data** corresponding to the current data state.
-  2. **A _triggerGetData_ function** that can be used to manually trigger the task (i.e. from a "Refresh" button).
+  2. **A _refreshAsyncData_ function** that can be used to manually trigger the task (i.e. from a "Refresh" button).
   3. **A _resetAsyncData_ function** that can be used to reset the data back to the `InitAsync` state, aborting it if it was in progress.
 
 ### `useAsyncTask`
