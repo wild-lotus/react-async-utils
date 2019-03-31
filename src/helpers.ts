@@ -122,13 +122,13 @@ export const map = <Payload1, Payload2>(
 // Higher level helpers
 //
 
-interface AsyncTaskOptions<Payload> {
+export interface AsyncTaskOptions<Payload> {
   onSuccess?: ((payload: Payload) => void) | undefined;
   onError?: ((error: Error) => void) | undefined;
 }
 
-export async function task<Payload>(
-  asyncFunction: () => Promise<Payload>,
+export async function triggerTask<Payload>(
+  task: () => Promise<Payload>,
   callback: (
     setNewAsyncData: (prevAsyncData?: Async<Payload>) => Async<Payload>,
   ) => boolean | void,
@@ -138,7 +138,7 @@ export async function task<Payload>(
     prevAsyncData ? setInProgressOrInvalidated(prevAsyncData) : newInProgress(),
   );
   try {
-    const result = await asyncFunction();
+    const result = await task();
     const successAsync = newSuccess(result);
     const aborted = callback(() => successAsync);
     !aborted && onSuccess && onSuccess(result);

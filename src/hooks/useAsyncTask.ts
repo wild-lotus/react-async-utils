@@ -1,58 +1,54 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { newInit, task, setInitOrAborted } from '../helpers';
+import { useEffect, useRef, useState } from 'react';
+import {
+  AsyncTaskOptions,
+  newInit,
+  triggerTask,
+  setInitOrAborted,
+} from '../helpers';
 import { Async } from '../types';
 
 const ABORT_DEFINED = typeof AbortController !== 'undefined';
 
-export interface UseAsyncTaskOptions<Payload> {
-  triggerAsEffect?: boolean;
-  onSuccess?: (payload: Payload) => void;
-  onError?: (error: Error) => void;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface UseAsyncTaskOptions<Payload>
+  extends AsyncTaskOptions<Payload> {}
 
-export function useAsyncTask<Payload>(
-  getData: (singal?: AbortSignal) => Promise<Payload>,
-  { triggerAsEffect, onSuccess, onError }: UseAsyncTaskOptions<Payload> = {},
-): [Async<Payload>, () => Promise<Async<Payload>>, () => void] {
-  const [asyncData, setAsyncData] = useState<Async<Payload>>(newInit());
+export function useAsyncTask<Payload, Args extends unknown[]>(
+  getTask: (singal?: AbortSignal) => (...args: Args) => Promise<Payload>,
+  options?: UseAsyncTaskOptions<Payload>,
+): [Async<Payload>, (...args: Args) => Promise<Async<Payload>>, () => void] {
+  const [asyncPayload, setAsyncPayload] = useState<Async<Payload>>(newInit());
 
   const triggerIdRef = useRef(0);
   const abortControllerRef = useRef<AbortController>();
 
-  const triggerAsyncTask = useCallback(async (): Promise<Async<Payload>> => {
+  const triggerAsyncTask = async (...args: Args): Promise<Async<Payload>> => {
     triggerIdRef.current++;
     const triggerId = triggerIdRef.current;
     abortControllerRef.current && abortControllerRef.current.abort();
     const abortController = ABORT_DEFINED ? new AbortController() : undefined;
     abortControllerRef.current = abortController;
-    return await task(
-      () => getData(abortController && abortController.signal),
+    return await triggerTask(
+      () => getTask(abortController && abortController.signal)(...args),
       setNewAsyncData => {
         if (triggerId === triggerIdRef.current) {
-          setAsyncData(setNewAsyncData);
+          setAsyncPayload(setNewAsyncData);
         } else {
           return true;
         }
       },
-      { onSuccess, onError },
+      options,
     );
-  }, [getData, onError, onSuccess]);
+  };
 
-  const abortTask = useCallback((): void => {
+  const abortAsyncTask = (): void => {
     triggerIdRef.current++;
     abortControllerRef.current && abortControllerRef.current.abort();
     abortControllerRef.current = undefined;
-  }, []);
-
-  const resetAsyncTask = (): void => {
-    abortTask();
-    setAsyncData(setInitOrAborted);
+    setAsyncPayload(setInitOrAborted);
   };
 
-  useEffect(() => {
-    triggerAsEffect && triggerAsyncTask();
-    return abortTask;
-  }, [triggerAsEffect, triggerAsyncTask, abortTask]);
+  useEffect(() => abortAsyncTask, []);
 
-  return [asyncData, triggerAsyncTask, resetAsyncTask];
+  return [asyncPayload, triggerAsyncTask, abortAsyncTask];
 }

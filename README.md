@@ -4,7 +4,7 @@
 
 <p>
 <a href="https://www.npmjs.com/package/react-async-utils"><img alt="npm" src="https://img.shields.io/npm/v/react-async-utils.svg"></a>
-<a href="https://travis-ci.com/CarlosGines/react-async-utils"><img alt="Travis (.com)" src="https://img.shields.io/travis/com/CarlosGines/react-async-utils.svg"></a>
+<a href="https://travis-ci.com/CarlosGines/react-async-utils"><img alt="Travis (.com)" src="https://img.shields.io/travis/com/CarlosGines/react-async-utils/master.svg"></a>
 <a href="https://coveralls.io/github/CarlosGines/react-async-utils"><img alt="Coveralls github" src="https://img.shields.io/coveralls/github/CarlosGines/react-async-utils.svg"></a>
 <a href="https://snyk.io/vuln/npm:react-async-utils"><img alt="Snyk Vulnerabilities for npm package" src="https://img.shields.io/snyk/vulnerabilities/npm/react-async-utils.svg"></a>
 <a href="https://github.com/CarlosGines/react-async-utils/blob/master/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/carlosgines/react-async-utils.svg"></a>
@@ -23,13 +23,15 @@ Collection of utils to work with asynchronous data in React in a more declarativ
 - [Installation](#installation)
 - [The new `Async` data concept](#the-new-async-data-concept)
   - [The 4 basic states of `Async` data](#the-4-basic-states-of-async-data)
-  - [useAsyncTask hook](#useasynctask-hook)
-    - [Auto trigger as an effect](#auto-trigger-as-an-effect)
+  - [The hooks](#the-hooks)
+    - [`useAsyncData` hook](#useasyncdata-hook)
+    - [`useAsyncTask` hook](#useasynctask-hook)
   - [Rendering `Async` data](#rendering-async-data)
     - [render](#render)
     - [AsyncViewContainer](#asyncviewcontainer)
 - [API Reference (WIP)](#api-reference-wip)
   - [Hooks](#hooks)
+    - [`useAsyncData`](#useasyncdata)
     - [`useAsyncTask`](#useasynctask)
 - [Contributing](#contributing)
 - [LICENSE](#license)
@@ -38,7 +40,7 @@ Collection of utils to work with asynchronous data in React in a more declarativ
 
 # The problem
 
-Dealing with asynchronous data is usually an imperative process, harder to express in a declarative manner, such as React promotes. It usually results in using a combination of variables/properties to keep track of the possible states:
+Dealing with asynchronous data or tasks is usually an imperative process, harder to express in a declarative manner, such as React promotes. It usually results in using a combination of variables/properties to keep track of the possible states:
 
 ```javascript
 let loading;
@@ -52,9 +54,11 @@ This a somehow complex construct for such an ubiquitous case. It can lead to ver
 
 So, it can feel awkward to follow this pattern. And you probably need to repeat that "boilerplate" a lot in your app.
 
+It may also have some more subtle requirements, like taking care of race conditions, or being able to abort the tasks.
+
 # This solution
 
-The base of this library is "[making impossible states impossible](https://blog.kentcdodds.com/make-impossible-states-impossible-cf85b97795c1)" for async data, and building abstractions around it.
+The base of this library is "[making impossible states impossible](https://blog.kentcdodds.com/make-impossible-states-impossible-cf85b97795c1)" for async data, and building rich abstractions around it.
 
 We do not separate the data itself from its asynchronous state, we consider it an intrinsic part of its nature. And so we put it all together as a new data type consistent with this async nature.
 
@@ -66,10 +70,10 @@ let asyncPerson: Async<Person>;
 
 It can be considered the declarative counterpart of a `Promise`.
 
-This new data type allows us to create some powerful abstractions, like the `useAsyncTask` custom hook
+This new data type allows us to create some powerful abstractions, like the `useAsyncData` custom hook
 
 ```typescript
-const [asyncPerson] = useAsyncTask(getPersonPromise, { triggerAsEffect: true });
+const [asyncPerson] = useAsyncData(getPersonPromise);
 ```
 
 which we will explain further down.
@@ -134,37 +138,52 @@ export type Async<Payload> =
 
 This data type is the base of our library. Take your time to understand it, and we will be able to do great things with it.
 
-## `useAsyncTask` hook
+## The hooks
 
-A powerful abstraction to manage the whole async process in a declarative way:
+This library features 2 hooks: `useAsyncData` and `useAsyncTask`:
+
+### `useAsyncData` hook
+
+A powerful abstraction to manage querying or fetching data in a declarative way. It takes care of race conditions and it can be aborted. It looks like this:
 
 ```typescript
-const [asyncPerson, triggerGetPerson] = useAsyncTask(getPersonPromise);
+const [asyncPerson] = useAsyncData(getPersonPromise);
+```
 
-const triggerButton = (
-  <button onClick={() => triggerGetPerson()}>Get me that person!</button>
+- **`asyncPerson`**: it is our `Async` data. It will be in the `InitAsync` state at the beginning, but will start getting updated as the data fetching task is triggered.
+- **`getPersonPromise`**: input function to fetch data. It returns a `Promise` that resolves to the desired data.
+
+This hook will run our data fetching task as an effect, so it will happen automatically after the first render. This effect will update `asyncPerson` state according to the state of the `Promise` returned by `getPersonPromise`.
+
+⚠️ Be careful, since this hook can cause infinite loops if not handed carefully. The input function is a dependency of the effect. You want to use `useCallback` if needed to keep its identity and prevent these loops:
+
+```typescript
+const [asyncPerson] = useAsyncData(
+  useCallback(() => getPersonPromise(personId), [personId]),
 );
 ```
 
-- **`getPersonPromise`**: input function that returns a `Promise`.
-- **`asyncPerson`**: it is our `Async` data. It will be in the `InitAsync` state at the beginning, but will start getting updated once the async task is triggered.
-- **`triggerGetPerson`**: a function that triggers the async task. It will call `getPersonPromise` when invoked, and it will update `asyncPerson` state according to the returned `Promise` state.
+You can read more details of `useAsyncData` hook at the [API Reference](#useasyncdata).
 
-You can call `triggerGetPerson` whenever you need it.
+### `useAsyncTask` hook
 
-### Auto trigger as an effect
-
-You can also trigger the async task automatically as an effect, providing the `triggerAsEffect` option as `true`:
+Similar to `useAsyncData`, this hook is used to manage posting or mutating data in a more declarative way. It also takes care of racing conditions and it can be aborted.
 
 ```typescript
-const [asyncPerson] = useAsyncTask(getPersonPromise, { triggerAsEffect: true });
+const [asyncSubmitResult, triggerSubmit] = useAsyncTask(() => submitValues);
+
+const triggerButton = (
+  <button onClick={() => triggerSubmit(values)}>Submit</button>
+);
 ```
 
-⚠️ Be careful, since using `triggerAsEffect` option can cause infinite loops if not handed carefully. Input functions of `useAsyncTask` hook (like `getPersonPromise` here) will become dependencies of the effect. You want to use `useCallback` if needed with them to prevent these loops.
+- **`asyncSubmitResult`**: it is our `Async` data. It will be in the `InitAsync` state at the beginning, but will start getting updated once the async task is triggered.
+- **`triggerSubmit`**: a function that triggers the async task. It will call `submitValues` when invoked with the same arguments it receives, and it will update `asyncSubmitResult` state according to the state of the `Promise` returned by `submitValues`.
+- **`submitValues`**: input function that accepts input arguments and returns a `Promise` that resolves to the result of the operation.
 
-<hr/>
+Unlike `useAsyncData`, this task will not be triggered as an effect, you need to trigger it with the trigger funtion, and you can provide it with parameters for the task.
 
-Of course you can use both _triggerAsEffect_ option and the returned _triggerAsyncTask_ function at the same time.
+See the [API Reference](#useasynctask) for more details.
 
 ## Rendering `Async` data
 
@@ -210,7 +229,7 @@ function MyComponent({ asyncPerson }) {
 }
 ```
 
-Apart from its children, it will render the render method corresponding to the `Async` data state.
+Apart from its children, it will render the render method of the corresponding `Async` data state.
 
 BONUS: `AsyncViewContainer` accepts an array at the `asyncData` prop :
 
@@ -236,56 +255,95 @@ Work in progress.
 
 ## Hooks
 
-### `useAsyncTask`
+### `useAsyncData`
 
 ```typescript
-function useAsyncTask<Payload>(
+function useAsyncData<Payload>(
   getData: (singal?: AbortSignal) => Promise<Payload>,
   {
-    triggerAsEffect,
+    disabled,
     onSuccess,
     onError,
   }: {
-    triggerAsEffect?: boolean;
+    disabled?: boolean;
     onSuccess?: (payload: Payload) => void;
     onError?: (error: Error) => void;
   },
-): [Async<Payload>, () => Promise<Async<Payload>>, () => void];
+): [Async<Payload>, () => void, () => void];
 ```
 
-This hook is suitable for handling any kind of async tasks, like fetching data or submitting forms. It takes care of race conditions and clean up on component unmount.
+This hook is suitable for handling any kind of querying or data fetching tasks. It takes care of race conditions and it cleans up on component unmount.
+
+⚠️ Be careful, all input functions (`getData`, `onSuccess`, `onError`) are dependencies of the effect it uses. You can create infinite loops if you do not hand them carefully. Wrap the input functions in `useCallback` if needed to prevent these infinite loops.
 
 - **@param `getData`**
 
-  _**You want to perform your fetch here**_. This input function is the async task that will be carried out.
+  _**You want to perform your fetch here**_. This input function is the async data fetching task that will be carried out. It must return a `Promise` that resolves to the desired data.
 
   It can use the `AbortSignal` that the hook provides (when browser supports it) if you want to make your task [abortable](https://developers.google.com/web/updates/2017/09/abortable-fetch).
 
-- **@param `options.triggerAsEffect`**
+- **@param `options.disabled`**
 
-  If true, your task will be as an effect. It will actually be run inside a `useEffect` hook.
-
-  ⚠️ Be careful, since all input functions (`getData`, `onSuccess`, `onError`) will become dependencies of the effect. You can create infinite loops if you do not hand them carefully. Wrap the input functions in `useCallback` if needed to prevent these infinite loops.
+  While false (default), your task will be run as an effect (inside a `useEffect` hook) and via manual triggers (with the returned "trigger" function). If true, your task will not be run as an effect nor via manual triggers.
 
 - **@param `options.onSuccess`**
 
-  Callback function that will be called when the task reaches the success state.
+  Callback function that will be called when the task reaches the `SuccessAsync` state.
 
 - **@param `options.onError`**
 
-  Callback function that will be called when the task reaches the error state.
+  Callback function that will be called when the task reaches the `ErrorAsync` state.
 
 - **@returns**
 
   A tuple with 3 values:
 
-  1. **The `Async` data** corresponding to the current task state.
-  2. **A _triggerAsyncTask_ function** that can be used to imperatively trigger the task (i.e. from a "Submit" or "Refresh" button). It returns a `Promise` of the resulting `Async` data. You generally won't use this `Async` data —which is a escape hatch for some imperative cases—, but the previous one —which is more declarative—.
-  3. **A _resetAsyncTask_ function** that can be used to reset the task back to the init state, aborting it if it was in progress.
+  1. **The `Async` data** corresponding to the current data state.
+  2. **A _refreshAsyncData_ function** that can be used to manually trigger the task (i.e. from a "Refresh" button).
+  3. **A _resetAsyncData_ function** that can be used to reset the data back to the `InitAsync` state, aborting it if it was in progress.
+
+### `useAsyncTask`
+
+```typescript
+function useAsyncTask<Payload, Args extends unknown[]>(
+  getTask: (singal?: AbortSignal) => (...args: Args) => Promise<Payload>,
+  {
+    onSuccess,
+    onError,
+  }: {
+    onSuccess?: (payload: Payload) => void;
+    onError?: (error: Error) => void;
+  },
+): [Async<Payload>, (...args: Args) => Promise<Async<Payload>>, () => void];
+```
+
+This hook is suitable for handling any kind of data posting or mutation task. It takes care of race conditions and it cleans up on component unmount.
+
+- **@param `getTask`**
+
+  This input function returns the async task that will be carried out. The returned task can have any input arguments, that will be provided when the task is triggered. The task must return a `Promise` that can resolve to the result of the operation (i.e. the new ID of a posted item) or to void.
+
+  It can use the `AbortSignal` that the hook provides (when browser supports it) if you want to make your task [abortable](https://developers.google.com/web/updates/2017/09/abortable-fetch).
+
+- **@param `options.onSuccess`**
+
+  Callback function that will be called when the task reaches the `SuccessAsync` state.
+
+- **@param `options.onError`**
+
+  Callback function that will be called when the task reaches the `ErrorAsync` state.
+
+- **@returns**
+
+  A tuple with 3 values:
+
+  1. **The `Async` result** of the corresponding async task.
+  2. **A _triggerAsyncTask_ function** that is used to trigger the task (i.e. from a "Submit" button). It forwards its args to the task provided to the hook, and it returns a `Promise` of the `Async` result. You generally won't use this returned `Async` data —which is a escape hatch for some cases—, but the previous one, which is more declarative.
+  3. **A _abortAsyncTask_ function** that can be used to abort the task, setting the `Async` back to the `InitAsync` state, and as "aborted" if it was in progress.
 
 # Contributing
 
-This is my first OSS. Open to contributions and willing to learn!
+Open to contributions!
 
 # LICENSE
 

@@ -185,7 +185,7 @@ it('renders one `errorRender` per `ErrorAsync` in the given an array', () => {
         newError(new Error(ERROR_3_TEXT)),
       ]}
       inProgressRender={null}
-      errorRender={errors =>
+      errorRender={(errors: Error[]) =>
         errors.map((error, i) => <p key={i}>{error.message}</p>)
       }
     >

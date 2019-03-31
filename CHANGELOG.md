@@ -1,3 +1,24 @@
+## 0.12.0 (Mar 31, 2019)
+
+This version is a major API update, to better match how the library is used. Main change: we have split `useAsyncTask` hook in 2: `useAsyncData` for data fetching use cases and `useAsyncTask` for data mutation use cases. See the docs on README.md to better understand them.
+
+### 🚀 New features
+
+- New `useAsyncData` hook. Similar to previous hook, with subtle differences. It runs a `getData` async task **as an effect by default**. I can be re-triggered and reset manually, and it provides a `disable` option to keep the effect —and manual triggers— inactive.
+
+### 💥 Breaking changes
+
+- `useAsyncTask` is different to previous version. I receives a `getTask` function that provides the `AbortSignal` and returns a function with any args that will be the async task. It is **never run as an effect**. You can only trigger it manually with the returned "trigger" function, and **you can provide any args to the task via the trigger function** args (they are forwarded).
+- `task` helper method renamed to `triggerTask`.
+
+### 📝 Documentation
+
+- Updated README parts related to hooks. Minors everywhere in README too.
+
+### 🏠 Internal
+
+- Migrated tests to Typescript.
+
 ## 0.11.0 (Mar 22, 2019)
 
 ### 💥 Breaking changes

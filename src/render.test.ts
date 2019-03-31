@@ -4,7 +4,9 @@ import { render } from './render';
 it('returns `init` render result that provides `aborted` substate given an `InitAsync`', () => {
   const INIT_TEXT = 'INIT_zuscufhu';
   const ABORTED_TEXT = 'ABORTED_jamnobof';
-  const renders = { init: aborted => (aborted ? ABORTED_TEXT : INIT_TEXT) };
+  const renders = {
+    init: (aborted?: boolean) => (aborted ? ABORTED_TEXT : INIT_TEXT),
+  };
   const initResult = render(newInit(), renders);
   expect(initResult).toBe(INIT_TEXT);
   const abortedResult = render(newInit(true), renders);
@@ -14,7 +16,7 @@ it('returns `init` render result that provides `aborted` substate given an `Init
 it('returns `null` if no `init` render provided given an `InitAsync`', () => {
   const result = render(newInit(), {});
   expect(result).toBeNull();
-})
+});
 
 it('returns `inProgress` render result given an `InProgressAsync`', () => {
   const TEXT = 'tanfozem';
@@ -25,14 +27,14 @@ it('returns `inProgress` render result given an `InProgressAsync`', () => {
 it('returns `null` if no `inProgress` render provided given an `InProgressAsync`', () => {
   const result = render(newInProgress(), {});
   expect(result).toBeNull();
-})
+});
 
 it('returns `success` render result that provides `payload` and `invalidated` substate given a `SuccessAsync`', () => {
   const SUCCESS_TEXT = 'SUCCESS_jacofduc';
   const INVALIDATED_TEXT = 'INVALIDATED_ceszimem';
   const PAYLOAD_TEXT = 'PAYLOAD_osulboci';
   const renders = {
-    success: (payload, invalidated) =>
+    success: <T>(payload: T, invalidated?: boolean) =>
       invalidated ? INVALIDATED_TEXT + payload : SUCCESS_TEXT + payload,
   };
   const successResult = render(newSuccess(PAYLOAD_TEXT), renders);
@@ -42,17 +44,17 @@ it('returns `success` render result that provides `payload` and `invalidated` su
 });
 
 it('returns `null` if no `success` render provided given a `SuccessAsync`', () => {
-  const result = render(newSuccess(), {});
+  const result = render(newSuccess(undefined), {});
   expect(result).toBeNull();
-})
+});
 
 it('returns `error` render result given an `ErrorAsync`', () => {
-  const TEXT = 'tanfozem';
-  const result = render(newError(TEXT), { error: error => error });
-  expect(result).toBe(TEXT);
+  const ERROR = new Error('tanfozem');
+  const result = render(newError(ERROR), { error: error => error });
+  expect(result).toBe(ERROR);
 });
 
 it('returns `null` if no `error` render provided given an `ErrorAsync`', () => {
-  const result = render(newError(), {});
+  const result = render(newError(new Error()), {});
   expect(result).toBeNull();
-})
+});

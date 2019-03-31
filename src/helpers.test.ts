@@ -1,5 +1,5 @@
 import { map, newSuccess, newError } from './helpers';
-// import { Async } from './types';
+import { Async } from './types';
 
 describe('map', () => {
   it('maps `SuccessAsync`s', () => {
@@ -10,7 +10,9 @@ describe('map', () => {
   });
 
   it('does not map `ErrorAsync`s', () => {
-    const SOME_ERROR_ASYNC = newError(new Error('Oh shit'));
+    const SOME_ERROR_ASYNC = newError(new Error('Oh shit')) as Async<{
+      x: number;
+    }>;
     expect(map(SOME_ERROR_ASYNC, payload => payload.x)).toEqual(
       SOME_ERROR_ASYNC,
     );
