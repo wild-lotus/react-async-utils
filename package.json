@@ -1,6 +1,6 @@
 {
   "name": "react-async-utils",
-  "version": "0.12.0-alpha.0",
+  "version": "0.12.0",
   "description": "Collection of utils to work with asynchronous data and asynchronous tasks in React in a more declarative way.",
   "keywords": [
     "async",
@@ -30,6 +30,7 @@
     "@babel/preset-env": "^7.4.2",
     "@babel/preset-react": "^7.0.0",
     "@babel/preset-typescript": "^7.3.3",
+    "@types/jest": "^24.0.11",
     "@types/react-dom": "^16.8.3",
     "@typescript-eslint/eslint-plugin": "^1.5.0",
     "@typescript-eslint/parser": "^1.5.0",
