@@ -1,3 +1,9 @@
+## 0.12.1 (Mar 31, 2019)
+
+### 📝 Documentation
+
+- Fixed outdated intro in README.
+
 ## 0.12.0 (Mar 31, 2019)
 
 This version is a major API update, to better match how the library is used. Main change: we have split `useAsyncTask` hook in 2: `useAsyncData` for data fetching use cases and `useAsyncTask` for data mutation use cases. See the docs on README.md to better understand them.
