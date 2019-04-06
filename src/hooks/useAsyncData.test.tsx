@@ -221,7 +221,7 @@ it('prevents racing conditions', async () => {
       }}
       options={{ onSuccess: onSuccessCallback }}
     >
-      {(asyncData, triggerAsycTask) => (
+      {(_, triggerAsycTask) => (
         <button
           onClick={triggerAsycTask}
           data-testid={TRIGGER_BUTTON_TEST_ID}

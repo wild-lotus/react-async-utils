@@ -140,8 +140,8 @@ export async function triggerTask<Payload>(
   try {
     const result = await task();
     const successAsync = newSuccess(result);
-    const aborted = callback(() => successAsync);
-    !aborted && onSuccess && onSuccess(result);
+    const cancalUpdates = callback(() => successAsync);
+    !cancalUpdates && onSuccess && onSuccess(result);
     return successAsync;
   } catch (error) {
     if (error && error.name === 'AbortError') {
@@ -150,8 +150,8 @@ export async function triggerTask<Payload>(
       return abortedAsync;
     } else {
       const errorAsync = newError(error);
-      const aborted = callback(() => errorAsync);
-      !aborted && onError && onError(error);
+      const cancalUpdates = callback(() => errorAsync);
+      !cancalUpdates && onError && onError(error);
       return errorAsync;
     }
   }
