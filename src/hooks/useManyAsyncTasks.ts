@@ -1,47 +1,43 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { AsyncTaskOptions, triggerTask, setInitOrAborted } from '../helpers';
+import { triggerTask, setInitOrAborted } from '../helpers';
 import { Async, InitAsync } from '../Asyncs';
-import { AsyncTask } from './useAsyncTask';
+import { AsyncTask, UseAsyncTaskOptions } from './useAsyncTask';
 
 const ABORT_DEFINED = typeof AbortController !== 'undefined';
-
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface UseAsyncTaskOptions<Payload>
-  extends AsyncTaskOptions<Payload> {}
 
 export function useManyAsyncTasks<Result, Args extends unknown[]>(
   getTask: (singal?: AbortSignal) => (...args: Args) => Promise<Result>,
   options?: UseAsyncTaskOptions<Result>,
-): (key: string) => AsyncTask<Result, Args> {
-  const [asyncResults, setAsyncResults] = useState<{
-    [key: string]: Async<Result>;
-  }>({});
+): (key: unknown) => AsyncTask<Result, Args> {
+  const [asyncResults, setAsyncResults] = useState(
+    new Map<unknown, Async<Result>>(),
+  );
 
-  const triggerIdsRef = useRef<{ [key: string]: number }>({});
-  const abortControllersRef = useRef<{
-    [key: string]: AbortController | undefined;
-  }>({});
+  const triggerIdsRef = useRef(new Map<unknown, number>());
+  const abortControllersRef = useRef(new Map<unknown, AbortController>());
 
   const getTriggerAsyncTask = (
-    key: string,
+    key: unknown,
   ): ((...args: Args) => Promise<Async<Result>>) => async (...args) => {
-    const triggerId = (triggerIdsRef.current[key] || 0) + 1;
-    triggerIdsRef.current[key] = triggerId;
+    const triggerId = (triggerIdsRef.current.get(key) || 0) + 1;
+    triggerIdsRef.current.set(key, triggerId);
 
     let abortController: AbortController | undefined;
     if (ABORT_DEFINED) {
       abortController =
-        abortControllersRef.current[key] || new AbortController();
-      abortControllersRef.current[key] = abortController;
+        abortControllersRef.current.get(key) || new AbortController();
+      abortControllersRef.current.set(key, abortController);
     }
     return await triggerTask(
       () => getTask(abortController && abortController.signal)(...args),
       setNewAsyncData => {
-        if (triggerId === triggerIdsRef.current[key]) {
-          setAsyncResults({
-            ...asyncResults,
-            [key]: setNewAsyncData(asyncResults[key]),
-          });
+        if (triggerId === triggerIdsRef.current.get(key)) {
+          setAsyncResults(prevAsyncResults =>
+            new Map(prevAsyncResults).set(
+              key,
+              setNewAsyncData(prevAsyncResults.get(key) || new InitAsync()),
+            ),
+          );
         } else {
           return true;
         }
@@ -50,27 +46,29 @@ export function useManyAsyncTasks<Result, Args extends unknown[]>(
     );
   };
 
-  const cancelUpdates = useCallback((key: string): void => {
-    triggerIdsRef.current[key]++;
+  const cancelUpdates = useCallback((key: unknown): void => {
+    triggerIdsRef.current.set(key, triggerIdsRef.current.get(key) || 0 + 1);
   }, []);
 
-  const getAbortAsyncTask = (key: string): (() => void) => () => {
+  const getAbortAsyncTask = (key: unknown): (() => void) => () => {
     cancelUpdates(key);
-    const abortController = abortControllersRef.current[key];
+    const abortController = abortControllersRef.current.get(key);
     abortController && abortController.abort();
-    abortControllersRef.current[key] = undefined;
-    setAsyncResults({
-      ...asyncResults,
-      [key]: setInitOrAborted(asyncResults[key]),
-    });
+    abortControllersRef.current.delete(key);
+    setAsyncResults(
+      new Map(asyncResults).set(
+        key,
+        setInitOrAborted(asyncResults.get(key) || new InitAsync()),
+      ),
+    );
   };
 
   useEffect(() => {
-    Object.keys(triggerIdsRef.current).forEach(cancelUpdates);
+    triggerIdsRef.current.forEach((_, key) => cancelUpdates(key));
   }, [cancelUpdates]);
 
-  return (key: string) => {
-    const asyncTask = (asyncResults[key] || new InitAsync()) as AsyncTask<
+  return (key: unknown) => {
+    const asyncTask = (asyncResults.get(key) || new InitAsync()) as AsyncTask<
       Result,
       Args
     >;
