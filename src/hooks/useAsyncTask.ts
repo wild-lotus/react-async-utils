@@ -13,10 +13,15 @@ const ABORT_DEFINED = typeof AbortController !== 'undefined';
 export interface UseAsyncTaskOptions<Payload>
   extends AsyncTaskOptions<Payload> {}
 
+export type AsyncTask<Result, Args extends unknown[]> = Async<Result> & {
+  trigger: (...args: Args) => Promise<Async<Result>>;
+  abort: () => void;
+};
+
 export function useAsyncTask<Result, Args extends unknown[]>(
   getTask: (singal?: AbortSignal) => (...args: Args) => Promise<Result>,
   options?: UseAsyncTaskOptions<Result>,
-): [Async<Result>, (...args: Args) => Promise<Async<Result>>, () => void] {
+): AsyncTask<Result, Args> {
   const [asyncResult, setAsyncResult] = useState<Async<Result>>(newInit());
 
   const triggerIdRef = useRef(0);
@@ -55,5 +60,9 @@ export function useAsyncTask<Result, Args extends unknown[]>(
 
   useEffect(() => cancelUpdates, [cancelUpdates]);
 
-  return [asyncResult, triggerAsyncTask, abortAsyncTask];
+  return {
+    ...asyncResult,
+    trigger: triggerAsyncTask,
+    abort: abortAsyncTask,
+  };
 }
