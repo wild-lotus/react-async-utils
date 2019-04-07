@@ -1,11 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import {
-  AsyncTaskOptions,
-  newInit,
-  triggerTask,
-  setInitOrAborted,
-} from '../helpers';
-import { Async } from '../types';
+import { AsyncTaskOptions, triggerTask, setInitOrAborted } from '../helpers';
+import { Async, InitAsync } from '../Asyncs';
 
 const ABORT_DEFINED = typeof AbortController !== 'undefined';
 
@@ -22,7 +17,9 @@ export function useAsyncTask<Result, Args extends unknown[]>(
   getTask: (singal?: AbortSignal) => (...args: Args) => Promise<Result>,
   options?: UseAsyncTaskOptions<Result>,
 ): AsyncTask<Result, Args> {
-  const [asyncResult, setAsyncResult] = useState<Async<Result>>(newInit());
+  const [asyncResult, setAsyncResult] = useState<Async<Result>>(
+    new InitAsync(),
+  );
 
   const triggerIdRef = useRef(0);
   const abortControllerRef = useRef<AbortController>();
@@ -58,11 +55,11 @@ export function useAsyncTask<Result, Args extends unknown[]>(
     setAsyncResult(setInitOrAborted);
   };
 
+  const asyncTask = asyncResult as AsyncTask<Result, Args>;
+  asyncTask.trigger = triggerAsyncTask;
+  asyncTask.abort = abortAsyncTask;
+
   useEffect(() => cancelUpdates, [cancelUpdates]);
 
-  return {
-    ...asyncResult,
-    trigger: triggerAsyncTask,
-    abort: abortAsyncTask,
-  };
+  return asyncTask;
 }

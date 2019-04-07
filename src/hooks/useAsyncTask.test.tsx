@@ -5,21 +5,19 @@ import {
   render as testingRender,
   wait,
 } from 'react-testing-library';
-import { isSuccess, getPayload, getError, isError } from '../helpers';
-import { render as asyncRender } from '../render';
-import { Async } from '../types';
-import { useAsyncTask, UseAsyncTaskOptions } from './useAsyncTask';
+import {
+  AsyncTask,
+  useAsyncTask,
+  UseAsyncTaskOptions,
+  render as asyncRender,
+} from '../index';
 
 afterEach(cleanup);
 
 interface Props<Payload, Args extends unknown[]> {
   getTask: (singal?: AbortSignal) => (...args: Args) => Promise<Payload>;
   options?: UseAsyncTaskOptions<Payload>;
-  children: (
-    asyncData: Async<Payload>,
-    triggerAsyncTask: (...args: Args) => Promise<Async<Payload>>,
-    abortAsyncTask: () => void,
-  ) => ReactNode;
+  children: (asyncTask: AsyncTask<Payload, Args>) => ReactNode;
 }
 
 function UseAsyncTaskComponent<Payload, Args extends unknown[]>({
@@ -27,7 +25,7 @@ function UseAsyncTaskComponent<Payload, Args extends unknown[]>({
   options,
   children,
 }: Props<Payload, Args>): ReactElement {
-  return <>{children(...useAsyncTask(getTask, options))}</>;
+  return <>{children(useAsyncTask(getTask, options))}</>;
 }
 
 function getAbortablePromise<Payload>({
@@ -61,9 +59,9 @@ it('forwards `triggerAsyncTask` args to task', async () => {
   const task = jest.fn();
   const { getByTestId } = testingRender(
     <UseAsyncTaskComponent getTask={() => task}>
-      {(_, triggerAsycTask) => (
+      {asyncTask => (
         <button
-          onClick={() => triggerAsycTask(...ARGS)}
+          onClick={() => asyncTask.trigger(...ARGS)}
           data-testid={TRIGGER_BUTTON_TEST_ID}
         />
       )}
@@ -88,18 +86,18 @@ it('updates async data up to `SuccessAsync` state, invokes `onSuccess` callback 
       getTask={() => () => Promise.resolve(PAYLOAD)}
       options={{ onSuccess: declarativeOnSuccessCallback }}
     >
-      {(asyncData, triggerAsycTask) => (
+      {asyncTask => (
         <>
-          {asyncRender(asyncData, {
+          {asyncRender(asyncTask, {
             init: () => INIT_TEXT,
             inProgress: () => IN_PROGRESS_TEXT,
             success: () => SUCCESS_TEXT,
           })}
           <button
             onClick={async () => {
-              const asyncResult = await triggerAsycTask();
-              isSuccess(asyncResult) &&
-                imperativeOnSuccessCallback(getPayload(asyncResult));
+              const asyncResult = await asyncTask.trigger();
+              asyncResult.isSuccess() &&
+                imperativeOnSuccessCallback(asyncResult.payload);
             }}
             data-testid={TRIGGER_BUTTON_TEST_ID}
           />
@@ -133,18 +131,18 @@ it('updates async data up to `ErrorAsync` state, invokes `onError` callback and 
       getTask={() => () => Promise.reject(ERROR)}
       options={{ onError: declarativeOnErrorCallback }}
     >
-      {(asyncData, triggerAsycTask) => (
+      {asyncTask => (
         <>
-          {asyncRender(asyncData, {
+          {asyncRender(asyncTask, {
             init: () => INIT_TEXT,
             inProgress: () => IN_PROGRESS_TEXT,
             error: () => ERROR_TEXT,
           })}
           <button
             onClick={async () => {
-              const asyncResult = await triggerAsycTask();
-              isError(asyncResult) &&
-                imperatieOnErrorCallback(getError(asyncResult));
+              const asyncResult = await asyncTask.trigger();
+              asyncResult.isError() &&
+                imperatieOnErrorCallback(asyncResult.error);
             }}
             data-testid={TRIGGER_BUTTON_TEST_ID}
           />
@@ -179,14 +177,17 @@ it('updates async data to `InitAsync` and aborted `InitAsync` state and fires th
       getTask={signal => () =>
         getAbortablePromise({ resolveWith: {}, signal, onAbortCallback })}
     >
-      {(asyncData, triggerAsyncTask, abortAsyncTask) => (
+      {asyncTask => (
         <>
           <button
-            onClick={triggerAsyncTask}
+            onClick={asyncTask.trigger}
             data-testid={TRIGGER_BUTTON_TEST_ID}
           />
-          <button onClick={abortAsyncTask} data-testid={RESET_BUTTON_TEST_ID} />
-          {asyncRender(asyncData, {
+          <button
+            onClick={asyncTask.abort}
+            data-testid={RESET_BUTTON_TEST_ID}
+          />
+          {asyncRender(asyncTask, {
             init: aborted => (aborted ? ABORTED_TEXT : INIT_TEXT),
             inProgress: () => IN_PROGRESS_TEXT,
             success: () => SUCCESS_TEXT,
@@ -222,10 +223,10 @@ it('runs the same task multiple times at the same time', async () => {
         getAbortablePromise({ resolveWith: payload, signal, onAbortCallback })}
       options={{ onSuccess: onSuccessCallback }}
     >
-      {(_, triggerAsycTask) => (
+      {asyncTask => (
         <button
           onClick={() => {
-            triggerAsycTask(counter++);
+            asyncTask.trigger(counter++);
           }}
           data-testid={TRIGGER_BUTTON_TEST_ID}
         />
@@ -252,13 +253,16 @@ it('can re-trigger a task afetr being aborted', async () => {
         getAbortablePromise({ resolveWith: 0, signal, onAbortCallback })}
       options={{ onSuccess: onSuccessCallback }}
     >
-      {(_, triggerAsycTask, abortAsyncTask) => (
+      {asyncTask => (
         <>
           <button
-            onClick={triggerAsycTask}
+            onClick={asyncTask.trigger}
             data-testid={TRIGGER_BUTTON_TEST_ID}
           />
-          <button onClick={abortAsyncTask} data-testid={ABORT_BUTTON_TEST_ID} />
+          <button
+            onClick={asyncTask.abort}
+            data-testid={ABORT_BUTTON_TEST_ID}
+          />
         </>
       )}
     </UseAsyncTaskComponent>,
@@ -283,13 +287,16 @@ it('aborts all instances of the same task when triggered multiple times at the s
         getAbortablePromise({ resolveWith: 0, signal, onAbortCallback })}
       options={{ onSuccess: onSuccessCallback }}
     >
-      {(_, triggerAsycTask, abortAsyncTask) => (
+      {asyncTask => (
         <>
           <button
-            onClick={triggerAsycTask}
+            onClick={asyncTask.trigger}
             data-testid={TRIGGER_BUTTON_TEST_ID}
           />
-          <button onClick={abortAsyncTask} data-testid={ABORT_BUTTON_TEST_ID} />
+          <button
+            onClick={asyncTask.abort}
+            data-testid={ABORT_BUTTON_TEST_ID}
+          />
         </>
       )}
     </UseAsyncTaskComponent>,
@@ -312,31 +319,30 @@ it('updates `SuccessAsync` data to invalidated `SuccessAsync` state after being 
   const PAYLOAD_1 = 'PAYLOAD_1_fozkeuje';
   const PAYLOAD_2 = 'PAYLOAD_2_lividtel';
   const INVALIDATED_TEXT = 'INVALIDATED_buapioru';
-  const children = function(
-    asyncData: Async<string>,
-    triggerAsyncTask: (payload: string) => Promise<Async<string>>,
-  ): ReactNode {
+  const children = function(asyncTask: AsyncTask<string, [string]>): ReactNode {
     return (
       <>
-        {asyncRender(asyncData, {
+        {asyncRender(asyncTask, {
           init: () => INIT_TEXT,
           inProgress: () => IN_PROGRESS_TEXT,
           success: (payload, invalidated) =>
             invalidated ? INVALIDATED_TEXT : payload,
         })}
         <button
-          onClick={() => triggerAsyncTask(PAYLOAD_1)}
+          onClick={() => asyncTask.trigger(PAYLOAD_1)}
           data-testid={TRIGGER_BUTTON_1_TEST_ID}
         />
         <button
-          onClick={() => triggerAsyncTask(PAYLOAD_2)}
+          onClick={() => asyncTask.trigger(PAYLOAD_2)}
           data-testid={TRIGGER_BUTTON_2_TEST_ID}
         />
       </>
     );
   };
   const { container, getByTestId } = testingRender(
-    <UseAsyncTaskComponent getTask={() => payload => Promise.resolve(payload)}>
+    <UseAsyncTaskComponent
+      getTask={() => (payload: string) => Promise.resolve(payload)}
+    >
       {children}
     </UseAsyncTaskComponent>,
   );

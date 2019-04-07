@@ -1,11 +1,6 @@
 import React, { ReactNode, ReactElement } from 'react';
-import {
-  getError,
-  isAnyInProgressOrInvalidated,
-  isError,
-  isInProgressOrInvalidated,
-} from '../helpers';
-import { Async } from '../types';
+import { isAnyInProgressOrInvalidated } from '../helpers';
+import { Async, ErrorAsync } from '../Asyncs';
 
 interface PropsSingle {
   asyncData: Async<unknown>;
@@ -45,12 +40,17 @@ export function AsyncViewContainer({
     forceInProgress ||
     (Array.isArray(asyncData)
       ? isAnyInProgressOrInvalidated(...asyncData)
-      : isInProgressOrInvalidated(asyncData));
+      : asyncData.isInProgressOrInvalidated());
   const errors =
     forceError ||
     (Array.isArray(asyncData)
-      ? asyncData.filter(isError).map(ad => ad.error)
-      : getError(asyncData));
+      ? asyncData
+          .filter(
+            (singleAsyncData): singleAsyncData is ErrorAsync =>
+              singleAsyncData.isError(),
+          )
+          .map(singleAsyncData => singleAsyncData.error)
+      : asyncData.getError());
   return (
     <>
       {errors &&

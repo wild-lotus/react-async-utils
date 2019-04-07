@@ -1,11 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  AsyncTaskOptions,
-  newInit,
-  triggerTask,
-  setInitOrAborted,
-} from '../helpers';
-import { Async } from '../types';
+import { AsyncTaskOptions, triggerTask, setInitOrAborted } from '../helpers';
+import { Async, InitAsync } from '../Asyncs';
 
 const ABORT_DEFINED = typeof AbortController !== 'undefined';
 
@@ -14,11 +9,17 @@ export interface UseAsyncDataOptions<Payload>
   disabled?: boolean;
 }
 
+export type AsyncData<Payload> = Async<Payload> & {
+  refresh: () => void;
+};
+
 export function useAsyncData<Payload>(
   getData: (singal?: AbortSignal) => Promise<Payload>,
   { onSuccess, onError, disabled }: UseAsyncDataOptions<Payload> = {},
-): [Async<Payload>, () => void, () => void] {
-  const [asyncData, setAsyncData] = useState<Async<Payload>>(newInit());
+): AsyncData<Payload> {
+  const [asyncPayload, setAsyncPayload] = useState<Async<Payload>>(
+    new InitAsync() as AsyncData<Payload>,
+  );
 
   const triggerIdRef = useRef(0);
   const abortControllerRef = useRef<AbortController>();
@@ -36,7 +37,7 @@ export function useAsyncData<Payload>(
       () => getData(abortController && abortController.signal),
       setNewAsyncData => {
         if (triggerId === triggerIdRef.current) {
-          setAsyncData(setNewAsyncData);
+          setAsyncPayload(setNewAsyncData);
         } else {
           return true;
         }
@@ -45,25 +46,23 @@ export function useAsyncData<Payload>(
     );
   }, [disabled, getData, onError, onSuccess]);
 
+  const asyncData = asyncPayload as AsyncData<Payload>;
+  asyncData.refresh = triggerGetData;
+
   const abortGetData = useCallback((): void => {
     triggerIdRef.current++;
     abortControllerRef.current && abortControllerRef.current.abort();
     abortControllerRef.current = undefined;
   }, []);
 
-  const resetAsyncData = (): void => {
-    abortGetData();
-    setAsyncData(setInitOrAborted);
-  };
-
   useEffect(() => {
     if (disabled) {
-      setAsyncData(setInitOrAborted);
+      setAsyncPayload(setInitOrAborted);
     } else {
       triggerGetData();
       return abortGetData;
     }
   }, [disabled, triggerGetData, abortGetData]);
 
-  return [asyncData, triggerGetData, resetAsyncData];
+  return asyncData;
 }

@@ -1,11 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import {
-  AsyncTaskOptions,
-  newInit,
-  triggerTask,
-  setInitOrAborted,
-} from '../helpers';
-import { Async } from '../types';
+import { AsyncTaskOptions, triggerTask, setInitOrAborted } from '../helpers';
+import { Async, InitAsync } from '../Asyncs';
 import { AsyncTask } from './useAsyncTask';
 
 const ABORT_DEFINED = typeof AbortController !== 'undefined';
@@ -74,9 +69,13 @@ export function useManyAsyncTasks<Result, Args extends unknown[]>(
     Object.keys(triggerIdsRef.current).forEach(cancelUpdates);
   }, [cancelUpdates]);
 
-  return (key: string) => ({
-    ...(asyncResults[key] || newInit()),
-    trigger: getTriggerAsyncTask(key),
-    abort: getAbortAsyncTask(key),
-  });
+  return (key: string) => {
+    const asyncTask = (asyncResults[key] || new InitAsync()) as AsyncTask<
+      Result,
+      Args
+    >;
+    asyncTask.trigger = getTriggerAsyncTask(key);
+    asyncTask.abort = getAbortAsyncTask(key);
+    return asyncTask;
+  };
 }

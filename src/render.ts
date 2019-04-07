@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Async, Progress } from './types';
+import { Async, Progress } from './Asyncs';
 
 export const render = <Payload>(
   origin: Async<Payload>,
