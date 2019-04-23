@@ -1,9 +1,17 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { triggerTask, setInitOrAborted } from '../helpers';
 import { Async, InitAsync } from '../Asyncs';
-import { AsyncTask, UseAsyncTaskOptions } from './useAsyncTask';
+import { triggerTask, setInitOrAborted, AsyncTaskOptions } from '../helpers';
 
 const ABORT_DEFINED = typeof AbortController !== 'undefined';
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface UseAsyncTaskOptions<Payload>
+  extends AsyncTaskOptions<Payload> {}
+
+export type AsyncTask<Result, Args extends unknown[]> = Async<Result> & {
+  trigger: (...args: Args) => Promise<Async<Result>>;
+  abort: () => void;
+};
 
 export function useManyAsyncTasks<Result, Args extends unknown[]>(
   getTask: (singal?: AbortSignal) => (...args: Args) => Promise<Result>,
@@ -47,7 +55,7 @@ export function useManyAsyncTasks<Result, Args extends unknown[]>(
   };
 
   const cancelUpdates = useCallback((key: unknown): void => {
-    triggerIdsRef.current.set(key, triggerIdsRef.current.get(key) || 0 + 1);
+    triggerIdsRef.current.set(key, (triggerIdsRef.current.get(key) || 0) + 1);
   }, []);
 
   const getAbortAsyncTask = (key: unknown): (() => void) => () => {
