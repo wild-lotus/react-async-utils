@@ -221,6 +221,44 @@ it('updates async task to `InitAsync` and aborted `InitAsync` state and fires th
   expect(onAbortCallback).toHaveBeenCalledTimes(2);
 });
 
+it('can re-trigger a task afetr being aborted', async () => {
+  const TRIGGER_BUTTON_TEST_ID = 'ihucafoc';
+  const ABORT_BUTTON_TEST_ID = 'kilnopro';
+  const onSuccessCallback = jest.fn();
+  const onAbortCallback = jest.fn();
+  const { getByTestId } = testingRender(
+    <UseAsyncTaskComponent
+      getTask={signal => () =>
+        getAbortablePromise({ resolveWith: 0, signal, onAbortCallback })}
+      options={{ onSuccess: onSuccessCallback }}
+    >
+      {asyncTask => (
+        <>
+          <button
+            onClick={asyncTask.trigger}
+            data-testid={TRIGGER_BUTTON_TEST_ID}
+          />
+          <button
+            onClick={asyncTask.abort}
+            data-testid={ABORT_BUTTON_TEST_ID}
+          />
+        </>
+      )}
+    </UseAsyncTaskComponent>,
+  );
+  fireEvent.click(getByTestId(TRIGGER_BUTTON_TEST_ID));
+  expect(onAbortCallback).toHaveBeenCalledTimes(0);
+
+  fireEvent.click(getByTestId(ABORT_BUTTON_TEST_ID));
+  expect(onAbortCallback).toHaveBeenCalledTimes(1);
+
+  fireEvent.click(getByTestId(TRIGGER_BUTTON_TEST_ID));
+  expect(onSuccessCallback).toHaveBeenCalledTimes(0);
+
+  await wait();
+  expect(onSuccessCallback).toHaveBeenCalledTimes(1);
+});
+
 it('updates `SuccessAsync` task to invalidated `SuccessAsync` state after being re-triggered', async () => {
   const TRIGGER_BUTTON_TEST_ID = 'vaihikat';
   const INIT_TEXT = 'INIT_tapujabf';
@@ -262,101 +300,69 @@ it('updates `SuccessAsync` task to invalidated `SuccessAsync` state after being 
   expect(container).toHaveTextContent('1');
 });
 
-// it('runs the same task multiple times at the same time', async () => {
-//   const TRIGGER_BUTTON_TEST_ID = 'luirdeub';
-//   const onSuccessCallback = jest.fn();
-//   const onAbortCallback = jest.fn();
-//   let counter = 1;
-//   const { getByTestId } = testingRender(
-//     <UseAsyncTaskComponent
-//       getTask={signal => payload =>
-//         getAbortablePromise({ resolveWith: payload, signal, onAbortCallback })}
-//       options={{ onSuccess: onSuccessCallback }}
-//     >
-//       {asyncTask => (
-//         <button
-//           onClick={() => {
-//             asyncTask.trigger(counter++);
-//           }}
-//           data-testid={TRIGGER_BUTTON_TEST_ID}
-//         />
-//       )}
-//     </UseAsyncTaskComponent>,
-//   );
-//   fireEvent.click(getByTestId(TRIGGER_BUTTON_TEST_ID));
-//   fireEvent.click(getByTestId(TRIGGER_BUTTON_TEST_ID));
-//   expect(onSuccessCallback).toHaveBeenCalledTimes(0);
-//   await wait();
-//   expect(onAbortCallback).toHaveBeenCalledTimes(0);
-//   expect(onSuccessCallback).toHaveBeenCalledTimes(1);
-//   expect(onSuccessCallback).toHaveBeenCalledWith(2);
-// });
+it('runs the same task multiple times at the same time', async () => {
+  const TRIGGER_BUTTON_TEST_ID = 'luirdeub';
+  const onSuccessCallback = jest.fn();
+  const onAbortCallback = jest.fn();
+  let counter = 1;
+  const { getByTestId } = testingRender(
+    <UseAsyncTaskComponent
+      getTask={signal => payload =>
+        getAbortablePromise({ resolveWith: payload, signal, onAbortCallback })}
+      options={{ onSuccess: onSuccessCallback }}
+    >
+      {asyncTask => (
+        <button
+          onClick={() => {
+            asyncTask.trigger(counter++);
+          }}
+          data-testid={TRIGGER_BUTTON_TEST_ID}
+        />
+      )}
+    </UseAsyncTaskComponent>,
+  );
+  fireEvent.click(getByTestId(TRIGGER_BUTTON_TEST_ID));
+  fireEvent.click(getByTestId(TRIGGER_BUTTON_TEST_ID));
+  expect(onSuccessCallback).toHaveBeenCalledTimes(0);
 
-// it('can re-trigger a task afetr being aborted', async () => {
-//   const TRIGGER_BUTTON_TEST_ID = 'mulebekm';
-//   const ABORT_BUTTON_TEST_ID = 'daswociz';
-//   const onSuccessCallback = jest.fn();
-//   const onAbortCallback = jest.fn();
-//   const { getByTestId } = testingRender(
-//     <UseAsyncTaskComponent
-//       getTask={signal => () =>
-//         getAbortablePromise({ resolveWith: 0, signal, onAbortCallback })}
-//       options={{ onSuccess: onSuccessCallback }}
-//     >
-//       {asyncTask => (
-//         <>
-//           <button
-//             onClick={asyncTask.trigger}
-//             data-testid={TRIGGER_BUTTON_TEST_ID}
-//           />
-//           <button
-//             onClick={asyncTask.abort}
-//             data-testid={ABORT_BUTTON_TEST_ID}
-//           />
-//         </>
-//       )}
-//     </UseAsyncTaskComponent>,
-//   );
-//   fireEvent.click(getByTestId(TRIGGER_BUTTON_TEST_ID));
-//   fireEvent.click(getByTestId(TRIGGER_BUTTON_TEST_ID));
-//   expect(onAbortCallback).toHaveBeenCalledTimes(0);
-//   fireEvent.click(getByTestId(ABORT_BUTTON_TEST_ID));
-//   expect(onAbortCallback).toHaveBeenCalledTimes(2);
-//   await wait();
-//   expect(onSuccessCallback).toHaveBeenCalledTimes(0);
-// });
+  await wait();
+  expect(onAbortCallback).toHaveBeenCalledTimes(0);
+  expect(onSuccessCallback).toHaveBeenCalledTimes(1);
+  expect(onSuccessCallback).toHaveBeenCalledWith(2);
+});
 
-// it('aborts all instances of the same task when triggered multiple times at the same time', async () => {
-//   const TRIGGER_BUTTON_TEST_ID = 'ihucafoc';
-//   const ABORT_BUTTON_TEST_ID = 'kilnopro';
-//   const onSuccessCallback = jest.fn();
-//   const onAbortCallback = jest.fn();
-//   const { getByTestId } = testingRender(
-//     <UseAsyncTaskComponent
-//       getTask={signal => () =>
-//         getAbortablePromise({ resolveWith: 0, signal, onAbortCallback })}
-//       options={{ onSuccess: onSuccessCallback }}
-//     >
-//       {asyncTask => (
-//         <>
-//           <button
-//             onClick={asyncTask.trigger}
-//             data-testid={TRIGGER_BUTTON_TEST_ID}
-//           />
-//           <button
-//             onClick={asyncTask.abort}
-//             data-testid={ABORT_BUTTON_TEST_ID}
-//           />
-//         </>
-//       )}
-//     </UseAsyncTaskComponent>,
-//   );
-//   fireEvent.click(getByTestId(TRIGGER_BUTTON_TEST_ID));
-//   expect(onAbortCallback).toHaveBeenCalledTimes(0);
-//   fireEvent.click(getByTestId(ABORT_BUTTON_TEST_ID));
-//   expect(onAbortCallback).toHaveBeenCalledTimes(1);
-//   fireEvent.click(getByTestId(TRIGGER_BUTTON_TEST_ID));
-//   expect(onSuccessCallback).toHaveBeenCalledTimes(0);
-//   await wait();
-//   expect(onSuccessCallback).toHaveBeenCalledTimes(1);
-// });
+it('aborts all instances of the same task when triggered multiple times at the same time', async () => {
+  const TRIGGER_BUTTON_TEST_ID = 'mulebekm';
+  const ABORT_BUTTON_TEST_ID = 'daswociz';
+  const onSuccessCallback = jest.fn();
+  const onAbortCallback = jest.fn();
+  const { getByTestId } = testingRender(
+    <UseAsyncTaskComponent
+      getTask={signal => () =>
+        getAbortablePromise({ resolveWith: 0, signal, onAbortCallback })}
+      options={{ onSuccess: onSuccessCallback }}
+    >
+      {asyncTask => (
+        <>
+          <button
+            onClick={asyncTask.trigger}
+            data-testid={TRIGGER_BUTTON_TEST_ID}
+          />
+          <button
+            onClick={asyncTask.abort}
+            data-testid={ABORT_BUTTON_TEST_ID}
+          />
+        </>
+      )}
+    </UseAsyncTaskComponent>,
+  );
+  fireEvent.click(getByTestId(TRIGGER_BUTTON_TEST_ID));
+  fireEvent.click(getByTestId(TRIGGER_BUTTON_TEST_ID));
+  expect(onAbortCallback).toHaveBeenCalledTimes(0);
+
+  fireEvent.click(getByTestId(ABORT_BUTTON_TEST_ID));
+  expect(onAbortCallback).toHaveBeenCalledTimes(2);
+
+  await wait();
+  expect(onSuccessCallback).toHaveBeenCalledTimes(0);
+});
