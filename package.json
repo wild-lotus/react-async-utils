@@ -1,6 +1,6 @@
 {
   "name": "react-async-utils",
-  "version": "0.12.1",
+  "version": "0.13.0",
   "description": "Collection of utils to work with asynchronous data and asynchronous tasks in React in a more declarative way.",
   "keywords": [
     "async",

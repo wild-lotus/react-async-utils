@@ -58,8 +58,8 @@ export class InProgressAsync extends BaseAsnyc {
 
 export class SuccessAsync<Payload> extends BaseAsnyc<Payload> {
   public progress: Progress.Success;
-  public invalidated?: boolean;
   public payload: Payload;
+  public invalidated?: boolean;
 
   public constructor(payload: Payload, invalidated?: boolean) {
     super();
