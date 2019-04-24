@@ -19,6 +19,10 @@
   },
   "plugins": ["@typescript-eslint", "jest", "react-hooks"],
   "rules": {
+    "@typescript-eslint/explicit-function-return-type": [
+      "warn",
+      { "allowExpressions": true }
+    ],
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn"
   },

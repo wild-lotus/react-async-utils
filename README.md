@@ -11,15 +11,19 @@
 </p>
 </div>
 
-Collection of utils to work with asynchronous data and asynchronous tasks in React in a more declarative way. Featuring  `useAsyncData` and `useAsyncTask` hooks for this purpose. It is delightful to use with TypeScript, but it can equally be used with JavaScript.
+Collection of utils to work with asynchronous data and tasks in React in a more declarative way. Featuring `useAsyncData` and `useAsyncTask` hooks for this purpose. It is delightful to use with TypeScript, but it can equally be used with JavaScript.
 
 # Table of Contents
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [The problem](#the-problem)
+- [The difficulties](#the-difficulties)
+  - [Data structure](#data-structure)
+  - [Features (React and non-React)](#features-react-and-non-react)
 - [This solution](#this-solution)
+  - [Data structure](#data-structure-1)
+  - [Features (React and non-React)](#features-react-and-non-react-1)
 - [Installation](#installation)
 - [The new `Async` data concept](#the-new-async-data-concept)
   - [The 4 basic states of `Async` data](#the-4-basic-states-of-async-data)
@@ -30,15 +34,31 @@ Collection of utils to work with asynchronous data and asynchronous tasks in Rea
     - [render](#render)
     - [AsyncViewContainer](#asyncviewcontainer)
 - [API Reference (WIP)](#api-reference-wip)
+  - [InitAsync](#initasync)
+  - [InProgressAsync](#inprogressasync)
+  - [SuccessAsync](#successasync)
+  - [ErrorAsync](#errorasync)
+  - [Async](#async)
+    - [`isInit`](#isinit)
+    - [`isInProgress`](#isinprogress)
+    - [`isSuccess`](#issuccess)
+    - [`isError`](#iserror)
+    - [`isInProgressOrInvalidated`](#isinprogressorinvalidated)
+    - [`isAborted`](#isaborted)
+    - [`getPayload`](#getpayload)
+    - [`getError`](#geterror)
   - [Hooks](#hooks)
     - [`useAsyncData`](#useasyncdata)
     - [`useAsyncTask`](#useasynctask)
+    - [`useManyAsyncTasks`](#usemanyasynctasks)
 - [Contributing](#contributing)
 - [LICENSE](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-# The problem
+# The difficulties
+
+## Data structure
 
 Dealing with asynchronous data or tasks is usually an imperative process, harder to express in a declarative manner, such as React promotes. It usually results in using a combination of variables/properties to keep track of the possible states:
 
@@ -46,17 +66,19 @@ Dealing with asynchronous data or tasks is usually an imperative process, harder
 let loading;
 let data;
 let error;
-// Even more...
+// Maybe more...
 ...
 ```
 
-This a somehow complex construct for such an ubiquitous case. It can lead to verbose code, even more when dealing with multiple pieces of async data at the same time. Some of these combinations don't even make sense (`loading === true && error !== undefined`?).
+This a somehow complex construct for such an ubiquitous case. It can lead to verbose code, even more when dealing with multiple pieces of async data at the same time. Some of these combinations don't even make sense (`loading === true && error !== undefined`?). It can feel awkward to follow this pattern.
 
-So, it can feel awkward to follow this pattern. And you probably need to repeat that "boilerplate" a lot in your app.
+## Features (React and non-React)
 
-It may also have some more subtle requirements, like taking care of race conditions, or being able to abort the tasks.
+You want to stay up to date with the state of art in our domain (Hooks, Concurrent Mode, Suspense...). You also want to take care of the more subtle requirements, like race conditions, or aborting. And you want to do it the right way. And that is not trivial.
 
 # This solution
+
+## Data structure
 
 The base of this library is "[making impossible states impossible](https://blog.kentcdodds.com/make-impossible-states-impossible-cf85b97795c1)" for async data, and building rich abstractions around it.
 
@@ -73,10 +95,14 @@ It can be considered the declarative counterpart of a `Promise`.
 This new data type allows us to create some powerful abstractions, like the `useAsyncData` custom hook
 
 ```typescript
-const [asyncPerson] = useAsyncData(getPersonPromise);
+const asyncPerson = useAsyncData(getPersonPromise);
 ```
 
 which we will explain further down.
+
+## Features (React and non-React)
+
+Our utils use the latest **stable** React capabilities to make working properly with async data and task **easy and direct**. They also take care of stuff like race conditions, cleaning up and easy aborting.
 
 # Installation
 
@@ -140,26 +166,26 @@ This data type is the base of our library. Take your time to understand it, and 
 
 ## The hooks
 
-This library features 2 hooks: `useAsyncData` and `useAsyncTask`:
+This library features 2 main hooks: `useAsyncData` and `useAsyncTask`:
 
 ### `useAsyncData` hook
 
 A powerful abstraction to manage querying or fetching data in a declarative way. It takes care of race conditions and it can be aborted. It looks like this:
 
 ```typescript
-const [asyncPerson] = useAsyncData(getPersonPromise);
+const asyncPerson = useAsyncData(getPersonPromise);
 ```
 
-- **`asyncPerson`**: it is our `Async` data. It will be in the `InitAsync` state at the beginning, but will start getting updated as the data fetching task is triggered.
 - **`getPersonPromise`**: input function to fetch data. It returns a `Promise` that resolves to the desired data.
+- **`asyncPerson`**: it is our `Async` data. It will be in the `InitAsync` state at the beginning, but will start getting updated as the data fetching task is triggered.
 
 This hook will run our data fetching task as an effect, so it will happen automatically after the first render. This effect will update `asyncPerson` state according to the state of the `Promise` returned by `getPersonPromise`.
 
-⚠️ Be careful, since this hook can cause infinite loops if not handed carefully. The input function is a dependency of the effect. You want to use `useCallback` if needed to keep its identity and prevent these loops:
+⚠️ Be careful, this hook can cause infinite loops. The input function is a dependency of the effect. You want to use `React.useCallback` if needed to keep its identity and prevent these loops:
 
 ```typescript
-const [asyncPerson] = useAsyncData(
-  useCallback(() => getPersonPromise(personId), [personId]),
+const asyncPerson = useAsyncData(
+  React.useCallback(() => getPersonPromise(personId), [personId]),
 );
 ```
 
@@ -167,21 +193,21 @@ You can read more details of `useAsyncData` hook at the [API Reference](#useasyn
 
 ### `useAsyncTask` hook
 
-Similar to `useAsyncData`, this hook is used to manage posting or mutating data in a more declarative way. It also takes care of racing conditions and it can be aborted.
+Similar to `useAsyncData`, this hook is used to manage posting or mutating data in a more declarative way. It can be aborted.
 
 ```typescript
-const [asyncSubmitResult, triggerSubmit] = useAsyncTask(() => submitValues);
+const asyncSubmitValues = useAsyncTask(() => submitValues);
 
 const triggerButton = (
-  <button onClick={() => triggerSubmit(values)}>Submit</button>
+  <button onClick={() => asyncSubmitValues.trigger(values)}>Submit</button>
 );
 ```
 
-- **`asyncSubmitResult`**: it is our `Async` data. It will be in the `InitAsync` state at the beginning, but will start getting updated once the async task is triggered.
-- **`triggerSubmit`**: a function that triggers the async task. It will call `submitValues` when invoked with the same arguments it receives, and it will update `asyncSubmitResult` state according to the state of the `Promise` returned by `submitValues`.
 - **`submitValues`**: input function that accepts input arguments and returns a `Promise` that resolves to the result of the operation.
+- **`asyncSubmitValues`**: it is our `Async` data. It will be in the `InitAsync` state at the beginning, but will start getting updated once the async task is triggered.
+- **`asyncSubmit.trigger`**: a function that triggers the async task. When invoked, it will call `submitValues` with the same arguments it receives, and it will update `asyncSubmit` state according to the state of the `Promise` returned by `submitValues`.
 
-Unlike `useAsyncData`, this task will not be triggered as an effect, you need to trigger it with the trigger funtion, and you can provide it with parameters for the task.
+Unlike `useAsyncData`, this task will not be triggered as an effect, you will trigger it with the `trigger` funtion, and you can provide it with any parameters.
 
 See the [API Reference](#useasynctask) for more details.
 
@@ -253,6 +279,122 @@ It will render the corresponding render method if _any_ `Async` data is on that 
 
 Work in progress.
 
+## InitAsync
+
+```typescript
+class InitAsync {
+  public progress: Progress.Init;
+  public aborted?: boolean;
+  public constructor(aborted?: boolean);
+}
+```
+
+Represents the INIT state **and** the ABORTED sub-state.
+
+## InProgressAsync
+
+```typescript
+class InProgressAsync {
+  public progress: Progress.InProgress;
+  public constructor();
+}
+```
+
+Represents the IN PROGRESS state.
+
+## SuccessAsync
+
+```typescript
+class SuccessAsync {
+  public progress: Progress.Success;
+  public payload: Payload;
+  public invalidated?: boolean;
+  public constructor(aborted?: boolean);
+}
+```
+
+Represents the SUCCESS state, with its corresponding payload **and** the INVALIDATED sub-state (payload outdated, new one in progress).
+
+## ErrorAsync
+
+```typescript
+class ErrorAsync {
+  public progress: Progress.Error;
+  public error: Error;
+  public constructor(error: Error);
+}
+```
+
+Represents the ERROR state, with its corresponding error.
+
+## Async
+
+All `Async` objects have these methods:
+
+### `isInit`
+
+```typescript
+public isInit(): this is InitAsync
+```
+
+- **@returns** `true` if async object is in INIT state and act as type guard.
+
+### `isInProgress`
+
+```typescript
+public isInProgress(): this is InProgressAsync
+```
+
+- **@returns** `true` if async object is in IN PROGRESS state and act as type guard.
+
+### `isSuccess`
+
+```typescript
+public isSuccess(): this is SuccessAsync<Payload>
+```
+
+- **@returns** `true` if async object is in SUCCESS state and act as type guard.
+
+### `isError`
+
+```typescript
+public isError(): this is ErrorAsync
+```
+
+- **@returns** `true` if async object is in ERROR state and act as type guard.
+
+### `isInProgressOrInvalidated`
+
+```typescript
+public isInProgressOrInvalidated(): this is InProgressAsync | SuccessAsync<Payload>
+```
+
+- **@returns** `true` if async object is in IN PROGRESS state or INVALIDATED sub-state and act as type guard.
+
+### `isAborted`
+
+```typescript
+public isAborted(): this is InitAsync
+```
+
+- **@returns** `true` if async object is in ABORTED sub-state and act as type guard.
+
+### `getPayload`
+
+```typescript
+public getPayload(): Payload | undefined
+```
+
+- **@returns** corresponding payload (generic) if async object is in SUCCESS state or `undefined` otherwise.
+
+### `getError`
+
+```typescript
+public getError(): Error | undefined
+```
+
+- **@returns** corresponding `Error` if async object is in ERROR state or `undefined` otherwise.
+
 ## Hooks
 
 ### `useAsyncData`
@@ -269,12 +411,18 @@ function useAsyncData<Payload>(
     onSuccess?: (payload: Payload) => void;
     onError?: (error: Error) => void;
   },
-): [Async<Payload>, () => void, () => void];
+): AsyncData<Payload>;
+
+type AsyncData<Payload> = Async<Payload> & {
+  refresh: () => void;
+};
 ```
 
-This hook is suitable for handling any kind of querying or data fetching tasks. It takes care of race conditions and it cleans up on component unmount.
+This hook is suitable for handling any kind of querying or data fetching. It takes care of race conditions and it cleans up on component unmount.
 
-⚠️ Be careful, all input functions (`getData`, `onSuccess`, `onError`) are dependencies of the effect it uses. You can create infinite loops if you do not hand them carefully. Wrap the input functions in `useCallback` if needed to prevent these infinite loops.
+⚠️ Be careful, all input functions (`getData`, `onSuccess`, `onError`) are dependencies of the effect it uses. You can create infinite loops if you do not hand them carefully. Wrap the input functions in `React.useCallback` if needed to prevent these infinite loops.
+
+Definition:
 
 - **@param `getData`**
 
@@ -284,7 +432,7 @@ This hook is suitable for handling any kind of querying or data fetching tasks. 
 
 - **@param `options.disabled`**
 
-  While false (default), your task will be run as an effect (inside a `useEffect` hook) and via manual triggers (with the returned "trigger" function). If true, your task will not be run as an effect nor via manual triggers.
+  While false (default), your task will be run as an effect (inside a `useEffect` hook). If true, your task will not be run as an effect, it will always return an `InitAsync`.
 
 - **@param `options.onSuccess`**
 
@@ -296,11 +444,9 @@ This hook is suitable for handling any kind of querying or data fetching tasks. 
 
 - **@returns**
 
-  A tuple with 3 values:
+  The `AsyncData<Payload>`, which is the `Async<Payload>` corresponding to the current state of the data, extended with this function:
 
-  1. **The `Async` data** corresponding to the current data state.
-  2. **A _refreshAsyncData_ function** that can be used to manually trigger the task (i.e. from a "Refresh" button).
-  3. **A _resetAsyncData_ function** that can be used to reset the data back to the `InitAsync` state, aborting it if it was in progress.
+  - **refresh:** function that can be used to trigger the fetch manually (i.e. from a "Refresh" button).
 
 ### `useAsyncTask`
 
@@ -314,10 +460,23 @@ function useAsyncTask<Payload, Args extends unknown[]>(
     onSuccess?: (payload: Payload) => void;
     onError?: (error: Error) => void;
   },
-): [Async<Payload>, (...args: Args) => Promise<Async<Payload>>, () => void];
+): AsyncTask<Payload, Args>;
+
+type AsyncTask<Payload, Args extends unknown[]> = Async<Payload> & {
+  trigger: (...args: Args) => Promise<Async<Payload>>;
+  abort: () => void;
+};
 ```
 
-This hook is suitable for handling any kind of data posting or mutation task. It takes care of race conditions and it cleans up on component unmount.
+This hook is suitable for handling any kind of data posting or mutation task. On component unmount it cleans up, but it does not abort flying requests (this can be done with the provided function).
+
+If triggered multiple times in a row:
+
+- All triggered tasks will happen.
+- The returned `Aync<Payload>` will only track the state of the last triggered tasks. See [`useManyAsyncTasks`](#usemanyasynctasks) if you want to trigger and track the state of many tasks.
+- `abort` will abort all existing tasks.
+
+Definition:
 
 - **@param `getTask`**
 
@@ -335,11 +494,27 @@ This hook is suitable for handling any kind of data posting or mutation task. It
 
 - **@returns**
 
-  A tuple with 3 values:
+  The `AsyncTask<Payload>`, which is the `Async<Payload>` corresponding to the current state of the task ,extended with these functions:
 
-  1. **The `Async` result** of the corresponding async task.
-  2. **A _triggerAsyncTask_ function** that is used to trigger the task (i.e. from a "Submit" button). It forwards its args to the task provided to the hook, and it returns a `Promise` of the `Async` result. You generally won't use this returned `Async` data —which is a escape hatch for some cases—, but the previous one, which is more declarative.
-  3. **A _abortAsyncTask_ function** that can be used to abort the task, setting the `Async` back to the `InitAsync` state, and as "aborted" if it was in progress.
+  - **trigger:** function that triggers the task (i.e. from a "Submit" button). It forwards its args to the task that you provided to the hook, and it returns a `Promise` of the `Async` result. You generally won't use this returned `Async`, it is a escape hatch for some cases.
+  - **abort:** function that aborts the task, setting the `Async` back to the `InitAsync` state, and as "aborted" if it was "in progress" or "invalidated".
+
+### `useManyAsyncTasks`
+
+```typescript
+function useManyAsyncTasks<Payload, Args extends unknown[]>(
+  getTask: (singal?: AbortSignal) => (...args: Args) => Promise<Payload>,
+  {
+    onSuccess,
+    onError,
+  }: {
+    onSuccess?: (payload: Payload) => void;
+    onError?: (error: Error) => void;
+  },
+): (key: any) => AsyncTask<Payload, Args>;
+```
+
+It works exactly the same way `useAsyncTask` does, but this hook can be used to track multiple async tasks of the same type. Instead of returning an `AsyncTask`, it returns an `AsyncTask` getter. Use any key as input to obtain the associated `AsyncTask`.
 
 # Contributing
 

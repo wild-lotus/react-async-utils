@@ -1,7 +1,11 @@
 import React from 'react';
 import { render, cleanup } from 'react-testing-library';
-import { AsyncViewContainer } from './AsyncViewContainer';
-import { newInit, newInProgress, newError } from '../helpers';
+import {
+  InitAsync,
+  InProgressAsync,
+  ErrorAsync,
+  AsyncViewContainer,
+} from '../index';
 
 afterEach(cleanup);
 
@@ -11,7 +15,7 @@ it('renders only children given an `InitAsync`', () => {
   const ERROR_TEXT = 'povahaer';
   const { container } = render(
     <AsyncViewContainer
-      asyncData={newInit()}
+      asyncData={new InitAsync()}
       inProgressRender={() => <p>{IN_PROGRESS_TEXT}</p>}
       errorRender={() => <p>{ERROR_TEXT}</p>}
     >
@@ -29,7 +33,7 @@ it('renders only children and `inProgressRender` after it given an `InProgressAs
   const ERROR_TEXT = 'zebozcur';
   const { container } = render(
     <AsyncViewContainer
-      asyncData={newInProgress()}
+      asyncData={new InProgressAsync()}
       inProgressRender={() => <p>{IN_PROGRESS_TEXT}</p>}
       errorRender={() => <p>{ERROR_TEXT}</p>}
     >
@@ -51,7 +55,7 @@ it('renders only children and `inProgressRender` before it given an `InProgressA
   const ERROR_TEXT = 'obhiweng';
   const { container } = render(
     <AsyncViewContainer
-      asyncData={newInProgress()}
+      asyncData={new InProgressAsync()}
       inProgressRender={() => <p>{IN_PROGRESS_TEXT}</p>}
       setInProgressRenderBeforeChildren
       errorRender={() => <p>{ERROR_TEXT}</p>}
@@ -74,7 +78,7 @@ it('renders only children and `errorRender` after it given an `ErrorAsync`', () 
   const ERROR_TEXT = 'vibelgas';
   const { container } = render(
     <AsyncViewContainer
-      asyncData={newError(new Error())}
+      asyncData={new ErrorAsync(new Error())}
       inProgressRender={() => <p>{IN_PROGRESS_TEXT}</p>}
       errorRender={() => <p>{ERROR_TEXT}</p>}
     >
@@ -96,7 +100,7 @@ it('renders only children and `errorRender` before it given an `ErrorAsync` and 
   const ERROR_TEXT = 'gukokubi';
   const { container } = render(
     <AsyncViewContainer
-      asyncData={newError(new Error())}
+      asyncData={new ErrorAsync(new Error())}
       inProgressRender={() => <p>{IN_PROGRESS_TEXT}</p>}
       errorRender={() => <p>{ERROR_TEXT}</p>}
       setErrorRenderBeforeChildren
@@ -119,7 +123,7 @@ it('renders only children and `inProgressRender` after it given an array with an
   const ERROR_TEXT = 'favseufp';
   const { container } = render(
     <AsyncViewContainer
-      asyncData={[newInit(), newInProgress()]}
+      asyncData={[new InitAsync(), new InProgressAsync()]}
       inProgressRender={() => <p>{IN_PROGRESS_TEXT}</p>}
       errorRender={() => <p>{ERROR_TEXT}</p>}
     >
@@ -141,7 +145,7 @@ it('renders only children and `errorRender` after it given an array with any `Er
   const ERROR_TEXT = 'juzpecto';
   const { container } = render(
     <AsyncViewContainer
-      asyncData={[newInit(), newError(new Error())]}
+      asyncData={[new InitAsync(), new ErrorAsync(new Error())]}
       inProgressRender={() => <p>{IN_PROGRESS_TEXT}</p>}
       errorRender={() => <p>{ERROR_TEXT}</p>}
     >
@@ -162,7 +166,7 @@ it('renders both `inProgressRender` and `errorRender`given an array with a `InPr
   const ERROR_TEXT = 'juzpecto';
   const { container } = render(
     <AsyncViewContainer
-      asyncData={[newInProgress(), newError(new Error())]}
+      asyncData={[new InProgressAsync(), new ErrorAsync(new Error())]}
       inProgressRender={() => <p>{IN_PROGRESS_TEXT}</p>}
       errorRender={() => <p>{ERROR_TEXT}</p>}
     >
@@ -180,9 +184,9 @@ it('renders one `errorRender` per `ErrorAsync` in the given an array', () => {
   const { container } = render(
     <AsyncViewContainer
       asyncData={[
-        newError(new Error(ERROR_1_TEXT)),
-        newError(new Error(ERROR_2_TEXT)),
-        newError(new Error(ERROR_3_TEXT)),
+        new ErrorAsync(new Error(ERROR_1_TEXT)),
+        new ErrorAsync(new Error(ERROR_2_TEXT)),
+        new ErrorAsync(new Error(ERROR_3_TEXT)),
       ]}
       inProgressRender={null}
       errorRender={(errors: Error[]) =>
@@ -201,7 +205,7 @@ it('renders `inProgressRender` given no `InProgressAsync` but `forceInProgress`'
   const IN_PROGRESS_TEXT = 'rofmomeb';
   const { container } = render(
     <AsyncViewContainer
-      asyncData={newInit()}
+      asyncData={new InitAsync()}
       inProgressRender={() => <p>{IN_PROGRESS_TEXT}</p>}
       forceInProgress
       errorRender={null}
@@ -216,7 +220,7 @@ it('renders `errorRender` given no `ErrorAsync` but `forceError`', () => {
   const ERROR_TEXT = 'nafbuvim';
   const { container } = render(
     <AsyncViewContainer
-      asyncData={newInit()}
+      asyncData={new InitAsync()}
       inProgressRender={null}
       errorRender={() => <p>{ERROR_TEXT}</p>}
       forceError={new Error()}

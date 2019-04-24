@@ -3,116 +3,49 @@ import {
   ErrorAsync,
   InitAsync,
   InProgressAsync,
-  Progress,
   SuccessAsync,
-} from './types';
-
-//
-// Async Data "constructors"
-//
-
-export const newInit = (aborted?: boolean): InitAsync => ({
-  progress: Progress.Init,
-  aborted,
-});
-
-export const newInProgress = (): InProgressAsync => ({
-  progress: Progress.InProgress,
-});
-
-export const newSuccess = <Payload>(
-  payload: Payload,
-  invalidated?: boolean,
-): SuccessAsync<Payload> => ({
-  invalidated: invalidated != null ? invalidated : false,
-  payload,
-  progress: Progress.Success,
-});
-
-export const newError = (errorObj: Error): ErrorAsync => ({
-  error: errorObj,
-  progress: Progress.Error,
-});
+} from './Asyncs';
 
 //
 // Async Data state checkers
 //
 
-export const isInit = <Payload>(
-  asyncData: Async<Payload>,
-): asyncData is InitAsync => asyncData.progress === Progress.Init;
-export const isInProgress = <Payload>(
-  asyncData: Async<Payload>,
-): asyncData is InProgressAsync => asyncData.progress === Progress.InProgress;
-export const isSuccess = <Payload>(
-  asyncData: Async<Payload>,
-): asyncData is SuccessAsync<Payload> =>
-  asyncData.progress === Progress.Success;
-export const isError = <Payload>(
-  asyncData: Async<Payload>,
-): asyncData is ErrorAsync => asyncData.progress === Progress.Error;
-
-export const isAborted = <Payload>(
-  asyncData: Async<Payload>,
-): asyncData is InitAsync => isInit(asyncData) && !!asyncData.aborted;
-export const isValidSuccess = <Payload>(
-  asyncData: Async<Payload>,
-): asyncData is SuccessAsync<Payload> =>
-  isSuccess(asyncData) && !asyncData.invalidated;
-export const isInvalidated = <Payload>(
-  asyncData: Async<Payload>,
-): asyncData is SuccessAsync<Payload> =>
-  isSuccess(asyncData) && !!asyncData.invalidated;
-export const isInProgressOrInvalidated = <Payload>(
-  asyncData: Async<Payload>,
-): asyncData is InProgressAsync | SuccessAsync<Payload> =>
-  isInProgress(asyncData) || isInvalidated(asyncData);
-
 export const isAnyInit = (...args: Async<unknown>[]): boolean =>
-  args.some(asyncData => isInit(asyncData));
+  args.some(asyncData => asyncData.isInit());
 export const isAnyInProgress = (...args: Async<unknown>[]): boolean =>
-  args.some(asyncData => isInProgress(asyncData));
+  args.some(asyncData => asyncData.isInProgress());
 export const isAnySuccess = (...args: Async<unknown>[]): boolean =>
-  args.some(asyncData => isSuccess(asyncData));
+  args.some(asyncData => asyncData.isSuccess());
 export const isAnyError = (...args: Async<unknown>[]): boolean =>
-  args.some(asyncData => isError(asyncData));
+  args.some(asyncData => asyncData.isError());
 
-export const isAnyaborted = (...args: Async<unknown>[]): boolean =>
-  args.some(asyncData => isAborted(asyncData));
-export const isAnyValidSuccess = (...args: Async<unknown>[]): boolean =>
-  args.some(asyncData => isValidSuccess(asyncData));
-export const isAnyInvalidated = (...args: Async<unknown>[]): boolean =>
-  args.some(asyncData => isInvalidated(asyncData));
 export const isAnyInProgressOrInvalidated = (
   ...args: Async<unknown>[]
-): boolean => args.some(asyncData => isInProgressOrInvalidated(asyncData));
+): boolean => args.some(asyncData => asyncData.isInProgressOrInvalidated());
+export const isAnyaborted = (...args: Async<unknown>[]): boolean =>
+  args.some(asyncData => asyncData.isAborted());
 
 //
 // Async Data transformations
 //
 
-export const getPayload = <Payload>(
-  origin: Async<Payload>,
-): Payload | undefined => (isSuccess(origin) ? origin.payload : undefined);
-
-export const getError = (origin: Async<unknown>): Error | undefined =>
-  isError(origin) ? origin.error : undefined;
-
 export const setInProgressOrInvalidated = <Payload>(
   origin: Async<Payload>,
 ): InProgressAsync | SuccessAsync<Payload> =>
-  isSuccess(origin) ? { ...origin, invalidated: true } : newInProgress();
+  origin.isSuccess()
+    ? new SuccessAsync(origin.payload, true)
+    : new InProgressAsync();
 
 export const setInitOrAborted = <Payload>(origin: Async<Payload>): InitAsync =>
-  newInit(isInProgressOrInvalidated(origin));
+  new InitAsync(origin.isInProgressOrInvalidated());
 
 export const map = <Payload1, Payload2>(
   origin: Async<Payload1>,
   mapper: (payload: Payload1) => Payload2,
   invalidated?: boolean,
 ): Async<Payload2> =>
-  isSuccess(origin)
-    ? newSuccess(
+  origin.isSuccess()
+    ? new SuccessAsync(
         mapper(origin.payload),
         invalidated !== undefined ? invalidated : origin.invalidated,
       )
@@ -135,23 +68,25 @@ export async function triggerTask<Payload>(
   { onSuccess, onError }: AsyncTaskOptions<Payload> = {},
 ): Promise<Async<Payload>> {
   callback(prevAsyncData =>
-    prevAsyncData ? setInProgressOrInvalidated(prevAsyncData) : newInProgress(),
+    prevAsyncData
+      ? setInProgressOrInvalidated(prevAsyncData)
+      : new InProgressAsync(),
   );
   try {
     const result = await task();
-    const successAsync = newSuccess(result);
-    const aborted = callback(() => successAsync);
-    !aborted && onSuccess && onSuccess(result);
+    const successAsync = new SuccessAsync(result);
+    const cancalUpdates = callback(() => successAsync);
+    !cancalUpdates && onSuccess && onSuccess(result);
     return successAsync;
   } catch (error) {
     if (error && error.name === 'AbortError') {
-      const abortedAsync = newInit(true);
+      const abortedAsync = new InitAsync(true);
       callback(() => abortedAsync);
       return abortedAsync;
     } else {
-      const errorAsync = newError(error);
-      const aborted = callback(() => errorAsync);
-      !aborted && onError && onError(error);
+      const errorAsync = new ErrorAsync(error);
+      const cancalUpdates = callback(() => errorAsync);
+      !cancalUpdates && onError && onError(error);
       return errorAsync;
     }
   }

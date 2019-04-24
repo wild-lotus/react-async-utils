@@ -1,6 +1,7 @@
-export { AsyncViewContainer } from './components/AsyncViewContainer';
+export * from './Asyncs';
 export * from './helpers';
-export { useAsyncData } from './hooks/useAsyncData';
-export { useAsyncTask } from './hooks/useAsyncTask';
-export { render } from './render';
-export * from './types';
+export * from './hooks/useAsyncData';
+export * from './hooks/useAsyncTask';
+export * from './hooks/useManyAsyncTasks';
+export * from './render';
+export * from './components/AsyncViewContainer';
