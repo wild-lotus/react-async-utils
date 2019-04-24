@@ -4,9 +4,9 @@ import {
   useManyAsyncTasks,
 } from './useManyAsyncTasks';
 
-export function useAsyncTask<Result, Args extends unknown[]>(
-  getTask: (singal?: AbortSignal) => (...args: Args) => Promise<Result>,
-  options?: UseAsyncTaskOptions<Result>,
-): AsyncTask<Result, Args> {
+export function useAsyncTask<Payload, Args extends unknown[]>(
+  getTask: (singal?: AbortSignal) => (...args: Args) => Promise<Payload>,
+  options?: UseAsyncTaskOptions<Payload>,
+): AsyncTask<Payload, Args> {
   return useManyAsyncTasks(getTask, options)(0);
 }

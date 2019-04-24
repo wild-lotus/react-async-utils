@@ -8,17 +8,17 @@ const ABORT_DEFINED = typeof AbortController !== 'undefined';
 export interface UseAsyncTaskOptions<Payload>
   extends AsyncTaskOptions<Payload> {}
 
-export type AsyncTask<Result, Args extends unknown[]> = Async<Result> & {
-  trigger: (...args: Args) => Promise<Async<Result>>;
+export type AsyncTask<Payload, Args extends unknown[]> = Async<Payload> & {
+  trigger: (...args: Args) => Promise<Async<Payload>>;
   abort: () => void;
 };
 
-export function useManyAsyncTasks<Result, Args extends unknown[]>(
-  getTask: (singal?: AbortSignal) => (...args: Args) => Promise<Result>,
-  options?: UseAsyncTaskOptions<Result>,
-): (key: unknown) => AsyncTask<Result, Args> {
+export function useManyAsyncTasks<Payload, Args extends unknown[]>(
+  getTask: (singal?: AbortSignal) => (...args: Args) => Promise<Payload>,
+  options?: UseAsyncTaskOptions<Payload>,
+): (key: unknown) => AsyncTask<Payload, Args> {
   const [asyncResults, setAsyncResults] = useState(
-    new Map<unknown, Async<Result>>(),
+    new Map<unknown, Async<Payload>>(),
   );
 
   const triggerIdsRef = useRef(new Map<unknown, number>());
@@ -26,7 +26,7 @@ export function useManyAsyncTasks<Result, Args extends unknown[]>(
 
   const getTriggerAsyncTask = (
     key: unknown,
-  ): ((...args: Args) => Promise<Async<Result>>) => async (...args) => {
+  ): ((...args: Args) => Promise<Async<Payload>>) => async (...args) => {
     const triggerId = (triggerIdsRef.current.get(key) || 0) + 1;
     triggerIdsRef.current.set(key, triggerId);
 
@@ -77,7 +77,7 @@ export function useManyAsyncTasks<Result, Args extends unknown[]>(
 
   return (key: unknown) => {
     const asyncTask = (asyncResults.get(key) || new InitAsync()) as AsyncTask<
-      Result,
+      Payload,
       Args
     >;
     asyncTask.trigger = getTriggerAsyncTask(key);
