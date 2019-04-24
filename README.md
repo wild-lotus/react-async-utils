@@ -11,15 +11,19 @@
 </p>
 </div>
 
-Collection of utils to work with asynchronous data and asynchronous tasks in React in a more declarative way. Featuring `useAsyncData` and `useAsyncTask` hooks for this purpose. It is delightful to use with TypeScript, but it can equally be used with JavaScript.
+Collection of utils to work with asynchronous data and tasks in React in a more declarative way. Featuring `useAsyncData` and `useAsyncTask` hooks for this purpose. It is delightful to use with TypeScript, but it can equally be used with JavaScript.
 
 # Table of Contents
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [The problem](#the-problem)
+- [The difficulties](#the-difficulties)
+  - [Data structure](#data-structure)
+  - [Features (React and non-React)](#features-react-and-non-react)
 - [This solution](#this-solution)
+  - [Data structure](#data-structure-1)
+  - [Features (React and non-React)](#features-react-and-non-react-1)
 - [Installation](#installation)
 - [The new `Async` data concept](#the-new-async-data-concept)
   - [The 4 basic states of `Async` data](#the-4-basic-states-of-async-data)
@@ -30,6 +34,19 @@ Collection of utils to work with asynchronous data and asynchronous tasks in Rea
     - [render](#render)
     - [AsyncViewContainer](#asyncviewcontainer)
 - [API Reference (WIP)](#api-reference-wip)
+  - [InitAsync](#initasync)
+  - [InProgressAsync](#inprogressasync)
+  - [SuccessAsync](#successasync)
+  - [ErrorAsync](#errorasync)
+  - [Async](#async)
+    - [`isInit`](#isinit)
+    - [`isInProgress`](#isinprogress)
+    - [`isSuccess`](#issuccess)
+    - [`isError`](#iserror)
+    - [`isInProgressOrInvalidated`](#isinprogressorinvalidated)
+    - [`isAborted`](#isaborted)
+    - [`getPayload`](#getpayload)
+    - [`getError`](#geterror)
   - [Hooks](#hooks)
     - [`useAsyncData`](#useasyncdata)
     - [`useAsyncTask`](#useasynctask)
@@ -39,7 +56,9 @@ Collection of utils to work with asynchronous data and asynchronous tasks in Rea
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-# The problem
+# The difficulties
+
+## Data structure
 
 Dealing with asynchronous data or tasks is usually an imperative process, harder to express in a declarative manner, such as React promotes. It usually results in using a combination of variables/properties to keep track of the possible states:
 
@@ -47,19 +66,19 @@ Dealing with asynchronous data or tasks is usually an imperative process, harder
 let loading;
 let data;
 let error;
-// Even more...
+// Maybe more...
 ...
 ```
 
 This a somehow complex construct for such an ubiquitous case. It can lead to verbose code, even more when dealing with multiple pieces of async data at the same time. Some of these combinations don't even make sense (`loading === true && error !== undefined`?). It can feel awkward to follow this pattern.
 
-You probably want to use hooks and/or Suspense (soon) for this, and you want to do it the right way.
+## Features (React and non-React)
 
-You might even have some more subtle requirements, like taking care of race conditions, or being able to abort the tasks.
-
-And you probably need to repeat that "boilerplate" a lot in your app.
+You want to stay up to date with the state of art in our domain (Hooks, Concurrent Mode, Suspense...). You also want to take care of the more subtle requirements, like race conditions, or aborting. And you want to do it the right way. And that is not trivial.
 
 # This solution
+
+## Data structure
 
 The base of this library is "[making impossible states impossible](https://blog.kentcdodds.com/make-impossible-states-impossible-cf85b97795c1)" for async data, and building rich abstractions around it.
 
@@ -80,6 +99,10 @@ const asyncPerson = useAsyncData(getPersonPromise);
 ```
 
 which we will explain further down.
+
+## Features (React and non-React)
+
+Our utils use the latest **stable** React capabilities to make working properly with async data and task **easy and direct**. They also take care of stuff like race conditions, cleaning up and easy aborting.
 
 # Installation
 
@@ -255,6 +278,122 @@ It will render the corresponding render method if _any_ `Async` data is on that 
 # API Reference (WIP)
 
 Work in progress.
+
+## InitAsync
+
+```typescript
+class InitAsync {
+  public progress: Progress.Init;
+  public aborted?: boolean;
+  public constructor(aborted?: boolean);
+}
+```
+
+Represents the INIT state **and** the ABORTED sub-state.
+
+## InProgressAsync
+
+```typescript
+class InProgressAsync {
+  public progress: Progress.InProgress;
+  public constructor();
+}
+```
+
+Represents the IN PROGRESS state.
+
+## SuccessAsync
+
+```typescript
+class SuccessAsync {
+  public progress: Progress.Success;
+  public payload: Payload;
+  public invalidated?: boolean;
+  public constructor(aborted?: boolean);
+}
+```
+
+Represents the SUCCESS state, with its corresponding payload **and** the INVALIDATED sub-state (payload outdated, new one in progress).
+
+## ErrorAsync
+
+```typescript
+class ErrorAsync {
+  public progress: Progress.Error;
+  public error: Error;
+  public constructor(error: Error);
+}
+```
+
+Represents the ERROR state, with its corresponding error.
+
+## Async
+
+All `Async` objects have these methods:
+
+### `isInit`
+
+```typescript
+public isInit(): this is InitAsync
+```
+
+- **@returns** `true` if async object is in INIT state and act as type guard.
+
+### `isInProgress`
+
+```typescript
+public isInProgress(): this is InProgressAsync
+```
+
+- **@returns** `true` if async object is in IN PROGRESS state and act as type guard.
+
+### `isSuccess`
+
+```typescript
+public isSuccess(): this is SuccessAsync<Payload>
+```
+
+- **@returns** `true` if async object is in SUCCESS state and act as type guard.
+
+### `isError`
+
+```typescript
+public isError(): this is ErrorAsync
+```
+
+- **@returns** `true` if async object is in ERROR state and act as type guard.
+
+### `isInProgressOrInvalidated`
+
+```typescript
+public isInProgressOrInvalidated(): this is InProgressAsync | SuccessAsync<Payload>
+```
+
+- **@returns** `true` if async object is in IN PROGRESS state or INVALIDATED sub-state and act as type guard.
+
+### `isAborted`
+
+```typescript
+public isAborted(): this is InitAsync
+```
+
+- **@returns** `true` if async object is in ABORTED sub-state and act as type guard.
+
+### `getPayload`
+
+```typescript
+public getPayload(): Payload | undefined
+```
+
+- **@returns** corresponding payload (generic) if async object is in SUCCESS state or `undefined` otherwise.
+
+### `getError`
+
+```typescript
+public getError(): Error | undefined
+```
+
+- **@returns** corresponding `Error` if async object is in ERROR state or `undefined` otherwise.
 
 ## Hooks
 

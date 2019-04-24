@@ -1,3 +1,23 @@
+## 0.13.0 (Apr 24, 2019)
+
+### 🚀 New features
+
+- New `useManyAsyncTasks` hook. It works exactly the same way `useAsyncTask` does, but this hook can be used to track multiple async tasks of the same type. Instead of returning an `AsyncTask`, it returns an `AsyncTask` getter. Use any key as input to obtain the associated `AsyncTask`.
+
+### 💥 Breaking changes
+
+- `useAsyncTask` tasks don't get aborted when triggered multiple times or on component unmounting, only via the provided `abort` function. State updates still get cancelled on component unmounting.
+- `useAsyncData` and `useAsyncTask` now return an object (an `AsyncData` or an `AsyncTask`) instead of a tuple. These objects are an `Async` including extra methods, like `refresh`, `trigger` or `abort`.
+- Many helper methods have been moved to class methods or constructors.
+  - `newInit(aborted)` becomes `new InitAsync(aborted)`...
+  - `isInit(someAsync)` becomes `someAsync.isInit()`...
+  - `getPayload(someAsync)` becomes `someAsync.getPayload()`.
+  - `getError(someAsync)` becomes `someAsync.getError()`.
+
+### 📝 Documentation
+
+- Updated and extended README.
+
 ## 0.12.1 (Mar 31, 2019)
 
 ### 📝 Documentation
