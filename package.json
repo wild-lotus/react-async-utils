@@ -4,6 +4,7 @@
   "description": "Collection of utils to work with asynchronous data and asynchronous tasks in React in a more declarative way.",
   "keywords": [
     "async",
+    "concurrentmode",
     "declarative",
     "fetch",
     "hooks",
@@ -11,6 +12,7 @@
     "react",
     "reacthooks",
     "reactjs",
+    "suspense",
     "utils"
   ],
   "files": [
