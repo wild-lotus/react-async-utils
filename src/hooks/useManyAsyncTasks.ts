@@ -72,7 +72,8 @@ export function useManyAsyncTasks<Payload, Args extends unknown[]>(
   };
 
   useEffect(() => {
-    triggerIdsRef.current.forEach((_, key) => cancelUpdates(key));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => triggerIdsRef.current.forEach((_, key) => cancelUpdates(key));
   }, [cancelUpdates]);
 
   return (key: unknown) => {
