@@ -1,3 +1,9 @@
+## 0.13.2 (May 3, 2019)
+
+### 🐛 Bug fixes
+
+- Fixed clean up on `useAsyncTask` and `useManyAsyncTasks`.
+
 ## 0.13.1 (May 3, 2019)
 
 ### 🐛 Bug fixes
