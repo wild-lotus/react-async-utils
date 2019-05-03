@@ -27,10 +27,6 @@ class BaseAsnyc<Payload = {}> {
   public isAborted(): this is InitAsync {
     return this.isInit() && !!this.aborted;
   }
-
-  public getPayload(): Payload | undefined {
-    return this.isSuccess() ? this.payload : undefined;
-  }
   public getError(): Error | undefined {
     return this.isError() ? this.error : undefined;
   }
@@ -45,6 +41,10 @@ export class InitAsync extends BaseAsnyc {
     this.progress = Progress.Init;
     this.aborted = aborted;
   }
+
+  public getPayload(): undefined {
+    return undefined;
+  }
 }
 
 export class InProgressAsync extends BaseAsnyc {
@@ -53,6 +53,10 @@ export class InProgressAsync extends BaseAsnyc {
   public constructor() {
     super();
     this.progress = Progress.InProgress;
+  }
+
+  public getPayload(): undefined {
+    return undefined;
   }
 }
 
@@ -67,6 +71,10 @@ export class SuccessAsync<Payload> extends BaseAsnyc<Payload> {
     this.payload = payload;
     this.invalidated = invalidated;
   }
+
+  public getPayload(): Payload {
+    return this.payload;
+  }
 }
 
 export class ErrorAsync extends BaseAsnyc {
@@ -77,6 +85,10 @@ export class ErrorAsync extends BaseAsnyc {
     super();
     this.progress = Progress.Error;
     this.error = error;
+  }
+
+  public getPayload(): undefined {
+    return undefined;
   }
 }
 

@@ -102,7 +102,7 @@ which we will explain further down.
 
 ## Features (React and non-React)
 
-Our utils use the latest **stable** React capabilities to make working properly with async data and task **easy and direct**. They also take care of stuff like race conditions, cleaning up and easy aborting.
+Our utils use the latest **stable** React capabilities to make working properly with async data and tasks **easy and direct**. They also take care of stuff like race conditions, cleaning up and easy aborting.
 
 # Installation
 
@@ -170,14 +170,14 @@ This library features 2 main hooks: `useAsyncData` and `useAsyncTask`:
 
 ### `useAsyncData` hook
 
-A powerful abstraction to manage querying or fetching data in a declarative way. It takes care of race conditions and it can be aborted. It looks like this:
+A powerful abstraction to manage querying or fetching data in a declarative way. It takes care of race conditions and it can get aborted. It looks like this:
 
 ```typescript
 const asyncPerson = useAsyncData(getPersonPromise);
 ```
 
 - **`getPersonPromise`**: input function to fetch data. It returns a `Promise` that resolves to the desired data.
-- **`asyncPerson`**: it is our `Async` data. It will be in the `InitAsync` state at the beginning, but will start getting updated as the data fetching task is triggered.
+- **`asyncPerson`**: it is our `Async` data. It will be in the INIT state at the beginning, but will start getting updated as the data fetching task is triggered.
 
 This hook will run our data fetching task as an effect, so it will happen automatically after the first render. This effect will update `asyncPerson` state according to the state of the `Promise` returned by `getPersonPromise`.
 
@@ -204,7 +204,7 @@ const triggerButton = (
 ```
 
 - **`submitValues`**: input function that accepts input arguments and returns a `Promise` that resolves to the result of the operation.
-- **`asyncSubmitValues`**: it is our `Async` data. It will be in the `InitAsync` state at the beginning, but will start getting updated once the async task is triggered.
+- **`asyncSubmitValues`**: it is our `Async` data. It will be in the INIT state at the beginning, but will start getting updated once the async task is triggered.
 - **`asyncSubmit.trigger`**: a function that triggers the async task. When invoked, it will call `submitValues` with the same arguments it receives, and it will update `asyncSubmit` state according to the state of the `Promise` returned by `submitValues`.
 
 Unlike `useAsyncData`, this task will not be triggered as an effect, you will trigger it with the `trigger` funtion, and you can provide it with any parameters.
@@ -221,15 +221,13 @@ A good option is the `render` helper method. You can provide a render method per
 import { render } from 'react-async-utls';
 
 render(asyncPerson, {
-  init: () => <p>Init state render. Nothing happened yet.</p>,
+  init: () => <p>INIT state render. Nothing happened yet.</p>,
   inProgress: () => (
-    <p>In Progress state render. We are fetching our Person.</p>
+    <p>IN PROGRESS state render. We are fetching our Person.</p>
   ),
-  success: person => (
-    <p>Successful state render. Please welcome {person.name}!</p>
-  ),
+  success: person => <p>SUCCESS state render. Please welcome {person.name}!</p>,
   error: error => (
-    <p>Error state render. Something went wrong: {error.message}</p>
+    <p>ERROR state render. Something went wrong: {error.message}</p>
   ),
 });
 ```
@@ -436,11 +434,11 @@ Definition:
 
 - **@param `options.onSuccess`**
 
-  Callback function that will be called when the task reaches the `SuccessAsync` state.
+  Callback function that will be called when the task reaches the SUCCESS state.
 
 - **@param `options.onError`**
 
-  Callback function that will be called when the task reaches the `ErrorAsync` state.
+  Callback function that will be called when the task reaches the ERROR state.
 
 - **@returns**
 
@@ -486,18 +484,18 @@ Definition:
 
 - **@param `options.onSuccess`**
 
-  Callback function that will be called when the task reaches the `SuccessAsync` state.
+  Callback function that will be called when the task reaches the SUCCESS state.
 
 - **@param `options.onError`**
 
-  Callback function that will be called when the task reaches the `ErrorAsync` state.
+  Callback function that will be called when the task reaches the ERROR state.
 
 - **@returns**
 
-  The `AsyncTask<Payload>`, which is the `Async<Payload>` corresponding to the current state of the task ,extended with these functions:
+  The `AsyncTask<Payload>`, which is the `Async<Payload>` corresponding to the current state of the task, extended with these functions:
 
   - **trigger:** function that triggers the task (i.e. from a "Submit" button). It forwards its args to the task that you provided to the hook, and it returns a `Promise` of the `Async` result. You generally won't use this returned `Async`, it is a escape hatch for some cases.
-  - **abort:** function that aborts the task, setting the `Async` back to the `InitAsync` state, and as "aborted" if it was "in progress" or "invalidated".
+  - **abort:** function that aborts the task, setting the `Async` back to the INIT state, and as ABORTED if it was IN PROGRESS or INVALIDTED.
 
 ### `useManyAsyncTasks`
 
