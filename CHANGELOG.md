@@ -1,3 +1,13 @@
+## 0.13.1 (May 3, 2019)
+
+### 🐛 Bug fixes
+
+- Fixed typing for `getPayload`, and added tests for it.
+
+### 📝 Documentation
+
+- Minimal updates to README.
+
 ## 0.13.0 (Apr 24, 2019)
 
 ### 🚀 New features
