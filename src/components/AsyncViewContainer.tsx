@@ -46,7 +46,7 @@ export function AsyncViewContainer({
     (Array.isArray(asyncData)
       ? asyncData
           .filter(
-            (singleAsyncData): singleAsyncData is ErrorAsync =>
+            (singleAsyncData): singleAsyncData is ErrorAsync<unknown> =>
               singleAsyncData.isError(),
           )
           .map(singleAsyncData => singleAsyncData.error)

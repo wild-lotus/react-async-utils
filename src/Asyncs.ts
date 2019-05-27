@@ -1,3 +1,5 @@
+import { ReactNode } from 'react';
+
 export enum Progress {
   Init,
   InProgress,
@@ -5,34 +7,64 @@ export enum Progress {
   Error,
 }
 
-class BaseAsnyc<Payload = {}> {
+class BaseAsnyc<Payload> {
   protected progress: unknown;
-  public isInit(): this is InitAsync {
+  public isInit(): this is InitAsync<Payload> {
     return this.progress === Progress.Init;
   }
-  public isInProgress(): this is InProgressAsync {
+  public isInProgress(): this is InProgressAsync<Payload> {
     return this.progress === Progress.InProgress;
   }
   public isSuccess(): this is SuccessAsync<Payload> {
     return this.progress === Progress.Success;
   }
-  public isError(): this is ErrorAsync {
+  public isError(): this is ErrorAsync<Payload> {
     return this.progress === Progress.Error;
   }
   public isInProgressOrInvalidated(): this is
-    | InProgressAsync
+    | InProgressAsync<Payload>
     | SuccessAsync<Payload> {
     return this.isInProgress() || (this.isSuccess() && !!this.invalidated);
   }
-  public isAborted(): this is InitAsync {
+  public isAborted(): this is InitAsync<Payload> {
     return this.isInit() && !!this.aborted;
   }
+
+  public getPayload(): Payload | undefined {
+    return this.isSuccess() ? this.payload : undefined;
+  }
+
   public getError(): Error | undefined {
     return this.isError() ? this.error : undefined;
   }
+
+  public render({
+    init,
+    inProgress,
+    success,
+    error,
+  }: {
+    init?: (aborted?: boolean) => ReactNode;
+    inProgress?: () => ReactNode;
+    success?: (payload: Payload, invalidated?: boolean) => ReactNode;
+    error?: (error: Error) => ReactNode;
+  }): ReactNode {
+    switch (this.progress) {
+      case Progress.Init:
+        return this.isInit() && init ? init(this.aborted) : null;
+      case Progress.InProgress:
+        return inProgress ? inProgress() : null;
+      case Progress.Success:
+        return this.isSuccess() && success
+          ? success(this.payload, this.invalidated)
+          : null;
+      case Progress.Error:
+        return this.isError() && error ? error(this.error) : null;
+    }
+  }
 }
 
-export class InitAsync extends BaseAsnyc {
+export class InitAsync<Payload> extends BaseAsnyc<Payload> {
   public progress: Progress.Init;
   public aborted?: boolean;
 
@@ -41,22 +73,14 @@ export class InitAsync extends BaseAsnyc {
     this.progress = Progress.Init;
     this.aborted = aborted;
   }
-
-  public getPayload(): undefined {
-    return undefined;
-  }
 }
 
-export class InProgressAsync extends BaseAsnyc {
+export class InProgressAsync<Payload> extends BaseAsnyc<Payload> {
   public progress: Progress.InProgress;
 
   public constructor() {
     super();
     this.progress = Progress.InProgress;
-  }
-
-  public getPayload(): undefined {
-    return undefined;
   }
 }
 
@@ -71,13 +95,9 @@ export class SuccessAsync<Payload> extends BaseAsnyc<Payload> {
     this.payload = payload;
     this.invalidated = invalidated;
   }
-
-  public getPayload(): Payload {
-    return this.payload;
-  }
 }
 
-export class ErrorAsync extends BaseAsnyc {
+export class ErrorAsync<Payload> extends BaseAsnyc<Payload> {
   public progress: Progress.Error;
   public error: Error;
 
@@ -86,14 +106,10 @@ export class ErrorAsync extends BaseAsnyc {
     this.progress = Progress.Error;
     this.error = error;
   }
-
-  public getPayload(): undefined {
-    return undefined;
-  }
 }
 
 export type Async<Payload> =
-  | InitAsync
-  | InProgressAsync
+  | InitAsync<Payload>
+  | InProgressAsync<Payload>
   | SuccessAsync<Payload>
-  | ErrorAsync;
+  | ErrorAsync<Payload>;
