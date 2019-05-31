@@ -228,3 +228,22 @@ it('updates `SuccessAsync` data to invalidated `SuccessAsync` state after being 
   await wait();
   expect(container).toHaveTextContent(PAYLOAD_2);
 });
+
+it('throws on runaway effect', async () => {
+  const getNewUi = (getData: () => Promise<void>): ReactElement => (
+    <UseAsyncDataComponent getData={getData}>
+      {() => null}
+    </UseAsyncDataComponent>
+  );
+  const { rerender } = render(getNewUi(async () => {}));
+  let error: Error | undefined = undefined;
+  try {
+    for (let i = 0; i < 100; i++) {
+      await wait();
+      rerender(getNewUi(async () => {}));
+    }
+  } catch (e) {
+    error = e;
+  }
+  expect(error && error.message).toMatch('Runaway');
+});
