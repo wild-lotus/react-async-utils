@@ -1,3 +1,23 @@
+## 0.14.0 (Oct 29, 2019)
+
+### 🚀 New features
+
+- New check to stop runaway effects. If you use `useAsyncData` hook unproperly, causing an infinite lop, now you will get an error explaining what happened and how to address it.
+
+### 💥 Breaking changes
+
+- `render` method has been moved to an `Async` class method.
+  - `render(someAsync, { ... }` becomes `someAsync.render({ ... })`
+- Now all `Async` classes use the generic `Payload` param:
+
+```typescript
+export type Async<Payload> =
+  | InitAsync<Payload>
+  | InProgressAsync<Payload>
+  | SuccessAsync<Payload>
+  | ErrorAsync<Payload>;
+```
+
 ## 0.13.3 (Oct 28, 2019)
 
 ### 🏠 Internal
