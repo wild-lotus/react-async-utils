@@ -4,7 +4,7 @@ import {
   fireEvent,
   render as testingRender,
   wait,
-} from 'react-testing-library';
+} from '@testing-library/react';
 import {
   AsyncTask,
   useAsyncTask,

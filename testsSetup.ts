@@ -1,4 +1,5 @@
-import 'jest-dom/extend-expect';
+/* eslint-disable no-console */
+import '@testing-library/jest-dom/extend-expect';
 
 const originalError = console.error;
 beforeAll(() => {

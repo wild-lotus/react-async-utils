@@ -1,6 +1,6 @@
 // const { defaults } = require('jest-config');
 module.exports = {
-  setupFilesAfterEnv: ['./testsSetup.js'],
+  setupFilesAfterEnv: ['./testsSetup.ts'],
   testPathIgnorePatterns: [
     // ...defaults.testPathIgnorePatterns,
     './node_modules/',
