@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 
-const CALLS_LIMIT = 5;
+export const CALLS_LIMIT = 5;
 const TIME_LIMIT = 500;
 
 const noop = (): void => {};
@@ -28,15 +28,18 @@ const useStopRunawayEffectDev = <Payload>({
     countRef.current++;
     if (countRef.current >= CALLS_LIMIT) {
       const causingArgs = [];
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       if (getData !== prevDependencies!.getData) {
         causingArgs.push(`- The 1st argument: ${getData.toString()}`);
       }
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       if (onSuccess !== prevDependencies!.onSuccess) {
         causingArgs.push(
           `- \`onSuccess\` in the 2nd argument: ${onSuccess &&
             onSuccess.toString()}`,
         );
       }
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       if (onError !== prevDependencies!.onError) {
         causingArgs.push(
           `- \`onError\` in the 2nd argument: ${onError && onError.toString()}`,

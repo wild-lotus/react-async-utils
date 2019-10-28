@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, wait } from '@testing-library/react';
 import React, { ReactNode, ReactElement } from 'react';
+import { CALLS_LIMIT } from './useStopRunawayEffect';
 import { Async, AsyncData, useAsyncData, UseAsyncDataOptions } from '../index';
 
 afterEach(cleanup);
@@ -230,15 +231,19 @@ it('updates `SuccessAsync` data to invalidated `SuccessAsync` state after being 
 });
 
 it('throws on runaway effect', async () => {
-  const getNewUi = (getData: () => Promise<void>): ReactElement => (
-    <UseAsyncDataComponent getData={getData}>
-      {() => null}
-    </UseAsyncDataComponent>
+  const getNewUi = jest.fn(
+    (getData: () => Promise<void>): ReactElement => (
+      <UseAsyncDataComponent getData={getData}>
+        {() => null}
+      </UseAsyncDataComponent>
+    ),
   );
   const { rerender } = render(getNewUi(async () => {}));
   let error: Error | undefined = undefined;
+  const ITERATIONS = 100;
+  expect(ITERATIONS).toBeGreaterThan(CALLS_LIMIT);
   try {
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < ITERATIONS; i++) {
       await wait();
       rerender(getNewUi(async () => {}));
     }
@@ -246,4 +251,30 @@ it('throws on runaway effect', async () => {
     error = e;
   }
   expect(error && error.message).toMatch('Runaway');
+  expect(getNewUi).toHaveBeenCalledTimes(CALLS_LIMIT);
+});
+
+it('does not throw on non runaway effect', async () => {
+  const STABLE_GET_DATA = async (): Promise<void> => {};
+  const getNewUi = jest.fn(
+    (getData: () => Promise<void>): ReactElement => (
+      <UseAsyncDataComponent getData={getData}>
+        {() => null}
+      </UseAsyncDataComponent>
+    ),
+  );
+  const { rerender } = render(getNewUi(STABLE_GET_DATA));
+  let error: Error | undefined = undefined;
+  const ITERATIONS = 100;
+  expect(ITERATIONS).toBeGreaterThan(CALLS_LIMIT);
+  try {
+    for (let i = 0; i < ITERATIONS; i++) {
+      await wait();
+      rerender(getNewUi(STABLE_GET_DATA));
+    }
+  } catch (e) {
+    error = e;
+  }
+  expect(error).toBeUndefined();
+  expect(getNewUi).toHaveBeenCalledTimes(ITERATIONS + 1);
 });
