@@ -3,8 +3,6 @@ import { useRef } from 'react';
 const CALLS_LIMIT = 5;
 const TIME_LIMIT = 500;
 
-let i = 0;
-
 const noop = (): void => {};
 
 interface AsyncDataDependencies<Payload> {
