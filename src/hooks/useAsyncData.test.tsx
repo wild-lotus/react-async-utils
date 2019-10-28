@@ -1,17 +1,7 @@
+import { cleanup, fireEvent, render, wait } from '@testing-library/react';
 import React, { ReactNode, ReactElement } from 'react';
-import {
-  cleanup,
-  fireEvent,
-  render as testingRender,
-  wait,
-} from '@testing-library/react';
-import {
-  Async,
-  AsyncData,
-  useAsyncData,
-  UseAsyncDataOptions,
-  render as asyncRender,
-} from '../index';
+import { CALLS_LIMIT } from './useStopRunawayEffect';
+import { Async, AsyncData, useAsyncData, UseAsyncDataOptions } from '../index';
 
 afterEach(cleanup);
 
@@ -59,13 +49,13 @@ it('updates async data up to `SuccessAsync` state and invokes `onSuccess` callba
   const SUCCESS_TEXT = 'SUCCESS_ukejemuo';
   const PAYLOAD = 'PAYLOAD_ezhihnoi';
   const onSuccessCallback = jest.fn();
-  const { container } = testingRender(
+  const { container } = render(
     <UseAsyncDataComponent
       getData={() => Promise.resolve(PAYLOAD)}
       options={{ onSuccess: onSuccessCallback }}
     >
       {asyncData =>
-        asyncRender(asyncData, {
+        asyncData.render({
           inProgress: () => IN_PROGRESS_TEXT,
           success: () => SUCCESS_TEXT,
         })
@@ -85,13 +75,13 @@ it('updates async data up to `ErrorAsync` state and invokes `onError` callback',
   const ERROR_TEXT = 'ERROR_vaowdenz';
   const ERROR = new Error();
   const onErrorCallback = jest.fn();
-  const { container } = testingRender(
+  const { container } = render(
     <UseAsyncDataComponent
       getData={() => Promise.reject(ERROR)}
       options={{ onError: onErrorCallback }}
     >
       {asyncData =>
-        asyncRender(asyncData, {
+        asyncData.render({
           inProgress: () => IN_PROGRESS_TEXT,
           error: () => ERROR_TEXT,
         })
@@ -109,14 +99,14 @@ it('updates async data up to `ErrorAsync` state and invokes `onError` callback',
 it('does not update async data state if disabled', async () => {
   const REFRESH_BUTTON_TEST_ID = 'gohsuzog';
   const INIT_TEXT = 'INIT_uddokbof';
-  const { container, getByTestId } = testingRender(
+  const { container, getByTestId } = render(
     <UseAsyncDataComponent
       getData={() => Promise.resolve()}
       options={{ disabled: true }}
     >
       {asyncData => (
         <>
-          {asyncRender(asyncData, { init: () => INIT_TEXT })}
+          {asyncData.render({ init: () => INIT_TEXT })}
           <button
             onClick={asyncData.refresh}
             data-testid={REFRESH_BUTTON_TEST_ID}
@@ -140,7 +130,7 @@ it('updates async data to `InitAsync` or aborted `InitAsync` state and fires the
   const onAbortCallback = jest.fn();
 
   const children = function<Payload>(asyncData: Async<Payload>): ReactNode {
-    return asyncRender(asyncData, {
+    return asyncData.render({
       init: aborted => (aborted ? ABORTED_TEXT : INIT_TEXT),
       inProgress: () => IN_PROGRESS_TEXT,
       success: () => SUCCESS_TEXT,
@@ -157,7 +147,7 @@ it('updates async data to `InitAsync` or aborted `InitAsync` state and fires the
       {children}
     </UseAsyncDataComponent>
   );
-  const { container, rerender } = testingRender(enabledComponent);
+  const { container, rerender } = render(enabledComponent);
 
   expect(container).toHaveTextContent(IN_PROGRESS_TEXT);
   await wait();
@@ -178,7 +168,7 @@ it('prevents racing conditions', async () => {
   const onSuccessCallback = jest.fn();
   const onAbortCallback = jest.fn();
   let counter = 1;
-  const { getByTestId } = testingRender(
+  const { getByTestId } = render(
     <UseAsyncDataComponent
       getData={signal => {
         const payload = counter;
@@ -215,14 +205,14 @@ it('updates `SuccessAsync` data to invalidated `SuccessAsync` state after being 
   const PAYLOAD_2 = 'PAYLOAD_2_zawejobr';
   const INVALIDATED_TEXT = 'INVALIDATED_zaluwobu';
   const children = function<Payload>(asyncData: Async<Payload>): ReactNode {
-    return asyncRender(asyncData, {
+    return asyncData.render({
       init: () => INIT_TEXT,
       inProgress: () => IN_PROGRESS_TEXT,
       success: (payload, invalidated) =>
         invalidated ? INVALIDATED_TEXT : payload,
     });
   };
-  const { container, rerender } = testingRender(
+  const { container, rerender } = render(
     <UseAsyncDataComponent getData={() => Promise.resolve(PAYLOAD_1)}>
       {children}
     </UseAsyncDataComponent>,
@@ -238,4 +228,53 @@ it('updates `SuccessAsync` data to invalidated `SuccessAsync` state after being 
   expect(container).toHaveTextContent(INVALIDATED_TEXT);
   await wait();
   expect(container).toHaveTextContent(PAYLOAD_2);
+});
+
+it('throws on runaway effect', async () => {
+  const getNewUi = jest.fn(
+    (getData: () => Promise<void>): ReactElement => (
+      <UseAsyncDataComponent getData={getData}>
+        {() => null}
+      </UseAsyncDataComponent>
+    ),
+  );
+  const { rerender } = render(getNewUi(async () => {}));
+  let error: Error | undefined = undefined;
+  const ITERATIONS = 100;
+  expect(ITERATIONS).toBeGreaterThan(CALLS_LIMIT);
+  try {
+    for (let i = 0; i < ITERATIONS; i++) {
+      await wait();
+      rerender(getNewUi(async () => {}));
+    }
+  } catch (e) {
+    error = e;
+  }
+  expect(error && error.message).toMatch('Runaway');
+  expect(getNewUi).toHaveBeenCalledTimes(CALLS_LIMIT);
+});
+
+it('does not throw on non runaway effect', async () => {
+  const STABLE_GET_DATA = async (): Promise<void> => {};
+  const getNewUi = jest.fn(
+    (getData: () => Promise<void>): ReactElement => (
+      <UseAsyncDataComponent getData={getData}>
+        {() => null}
+      </UseAsyncDataComponent>
+    ),
+  );
+  const { rerender } = render(getNewUi(STABLE_GET_DATA));
+  let error: Error | undefined = undefined;
+  const ITERATIONS = 100;
+  expect(ITERATIONS).toBeGreaterThan(CALLS_LIMIT);
+  try {
+    for (let i = 0; i < ITERATIONS; i++) {
+      await wait();
+      rerender(getNewUi(STABLE_GET_DATA));
+    }
+  } catch (e) {
+    error = e;
+  }
+  expect(error).toBeUndefined();
+  expect(getNewUi).toHaveBeenCalledTimes(ITERATIONS + 1);
 });

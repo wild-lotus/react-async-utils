@@ -1,16 +1,6 @@
+import { cleanup, fireEvent, render, wait } from '@testing-library/react';
 import React, { ReactElement, ReactNode } from 'react';
-import {
-  cleanup,
-  fireEvent,
-  render as testingRender,
-  wait,
-} from '@testing-library/react';
-import {
-  AsyncTask,
-  useAsyncTask,
-  UseAsyncTaskOptions,
-  render as asyncRender,
-} from '../index';
+import { AsyncTask, useAsyncTask, UseAsyncTaskOptions } from '../index';
 
 afterEach(cleanup);
 
@@ -57,7 +47,7 @@ it('forwards `triggerAsyncTask` args to task', async () => {
   const TRIGGER_BUTTON_TEST_ID = 'cuifcawk';
   const ARGS = ['vipuzcuz', 'busadekg', 'fihidvol'];
   const task = jest.fn();
-  const { getByTestId } = testingRender(
+  const { getByTestId } = render(
     <UseAsyncTaskComponent getTask={() => task}>
       {asyncTask => (
         <button
@@ -82,14 +72,14 @@ it('updates async task up to `SuccessAsync` state, invokes `onSuccess` callback 
   const PAYLOAD = 'PAYLOAD_cerzegbo';
   const declarativeOnSuccessCallback = jest.fn();
   const imperativeOnSuccessCallback = jest.fn();
-  const { container, getByTestId } = testingRender(
+  const { container, getByTestId } = render(
     <UseAsyncTaskComponent
       getTask={() => () => Promise.resolve(PAYLOAD)}
       options={{ onSuccess: declarativeOnSuccessCallback }}
     >
       {asyncTask => (
         <>
-          {asyncRender(asyncTask, {
+          {asyncTask.render({
             init: () => INIT_TEXT,
             inProgress: () => IN_PROGRESS_TEXT,
             success: () => SUCCESS_TEXT,
@@ -129,14 +119,14 @@ it('updates async task up to `ErrorAsync` state, invokes `onError` callback and 
   const ERROR = new Error();
   const declarativeOnErrorCallback = jest.fn();
   const imperatieOnErrorCallback = jest.fn();
-  const { container, getByTestId } = testingRender(
+  const { container, getByTestId } = render(
     <UseAsyncTaskComponent
       getTask={() => () => Promise.reject(ERROR)}
       options={{ onError: declarativeOnErrorCallback }}
     >
       {asyncTask => (
         <>
-          {asyncRender(asyncTask, {
+          {asyncTask.render({
             init: () => INIT_TEXT,
             inProgress: () => IN_PROGRESS_TEXT,
             error: () => ERROR_TEXT,
@@ -176,14 +166,14 @@ it('updates async task to `InitAsync` and aborted `InitAsync` state and fires th
   const IN_PROGRESS_TEXT = 'IN_PROGRESS_ewukaela';
   const SUCCESS_TEXT = 'SUCCESS_covsuujv';
   const onAbortCallback = jest.fn();
-  const { container, getByTestId } = testingRender(
+  const { container, getByTestId } = render(
     <UseAsyncTaskComponent
       getTask={signal => () =>
         getAbortablePromise({ resolveWith: {}, signal, onAbortCallback })}
     >
       {asyncTask => (
         <>
-          {asyncRender(asyncTask, {
+          {asyncTask.render({
             init: aborted => (aborted ? ABORTED_TEXT : INIT_TEXT),
             inProgress: () => IN_PROGRESS_TEXT,
             success: () => SUCCESS_TEXT,
@@ -226,7 +216,7 @@ it('can re-trigger a task afetr being aborted', async () => {
   const ABORT_BUTTON_TEST_ID = 'kilnopro';
   const onSuccessCallback = jest.fn();
   const onAbortCallback = jest.fn();
-  const { getByTestId } = testingRender(
+  const { getByTestId } = render(
     <UseAsyncTaskComponent
       getTask={signal => () =>
         getAbortablePromise({ resolveWith: 0, signal, onAbortCallback })}
@@ -265,13 +255,13 @@ it('updates `SuccessAsync` task to invalidated `SuccessAsync` state after being 
   const IN_PROGRESS_TEXT = 'IN_PROGRESS_atoluboz';
   const INVALIDATED_TEXT = 'INVALIDATED_buapioru';
   let counter = 0;
-  const { container, getByTestId } = testingRender(
+  const { container, getByTestId } = render(
     <UseAsyncTaskComponent
       getTask={() => (payload: number) => Promise.resolve(payload)}
     >
       {asyncTask => (
         <>
-          {asyncRender(asyncTask, {
+          {asyncTask.render({
             init: () => INIT_TEXT,
             inProgress: () => IN_PROGRESS_TEXT,
             success: (payload, invalidated) =>
@@ -305,7 +295,7 @@ it('runs the same task multiple times at the same time', async () => {
   const onSuccessCallback = jest.fn();
   const onAbortCallback = jest.fn();
   let counter = 1;
-  const { getByTestId } = testingRender(
+  const { getByTestId } = render(
     <UseAsyncTaskComponent
       getTask={signal => payload =>
         getAbortablePromise({ resolveWith: payload, signal, onAbortCallback })}
@@ -336,7 +326,7 @@ it('aborts all instances of the same task when triggered multiple times at the s
   const ABORT_BUTTON_TEST_ID = 'daswociz';
   const onSuccessCallback = jest.fn();
   const onAbortCallback = jest.fn();
-  const { getByTestId } = testingRender(
+  const { getByTestId } = render(
     <UseAsyncTaskComponent
       getTask={signal => () =>
         getAbortablePromise({ resolveWith: 0, signal, onAbortCallback })}

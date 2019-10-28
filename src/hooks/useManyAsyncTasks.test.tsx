@@ -1,16 +1,6 @@
+import { cleanup, fireEvent, render, wait } from '@testing-library/react';
 import React, { ReactElement, ReactNode } from 'react';
-import {
-  cleanup,
-  fireEvent,
-  render as testingRender,
-  wait,
-} from '@testing-library/react';
-import {
-  AsyncTask,
-  useManyAsyncTasks,
-  UseAsyncTaskOptions,
-  render as asyncRender,
-} from '../index';
+import { AsyncTask, useManyAsyncTasks, UseAsyncTaskOptions } from '../index';
 
 afterEach(cleanup);
 
@@ -61,7 +51,7 @@ it('forwards all `trigger` args to task', async () => {
   const ARGS_A = ['sicopowh', 'sizejviw', 'walujako'];
   const ARGS_B = ['ibacudag', 'kupeafot', 'lugzahof'];
   const task = jest.fn();
-  const { getByTestId } = testingRender(
+  const { getByTestId } = render(
     <UseManyAsyncTasksComponent getTask={() => task}>
       {getAsyncTask => (
         <>
@@ -100,19 +90,19 @@ it('updates parallel async tasks up to `SuccessAsync` state, invokes `onSuccess`
   const declarativeOnSuccessCallback = jest.fn();
   const imperativeOnSuccessCallbackA = jest.fn();
   const imperativeOnSuccessCallbackB = jest.fn();
-  const { container, getByTestId } = testingRender(
+  const { container, getByTestId } = render(
     <UseManyAsyncTasksComponent
       getTask={() => payload => Promise.resolve(payload)}
       options={{ onSuccess: declarativeOnSuccessCallback }}
     >
       {getAsyncTask => (
         <>
-          {asyncRender(getAsyncTask('A'), {
+          {getAsyncTask('A').render({
             init: () => INIT_TEXT_A,
             inProgress: () => IN_PROGRESS_TEXT_A,
             success: () => SUCCESS_TEXT_A,
           })}
-          {asyncRender(getAsyncTask('B'), {
+          {getAsyncTask('B').render({
             init: () => INIT_TEXT_B,
             inProgress: () => IN_PROGRESS_TEXT_B,
             success: () => SUCCESS_TEXT_B,
@@ -171,19 +161,19 @@ it('updates sequential async tasks up to `SuccessAsync` state, invokes `onSucces
   const declarativeOnSuccessCallback = jest.fn();
   const imperativeOnSuccessCallbackA = jest.fn();
   const imperativeOnSuccessCallbackB = jest.fn();
-  const { container, getByTestId } = testingRender(
+  const { container, getByTestId } = render(
     <UseManyAsyncTasksComponent
       getTask={() => payload => Promise.resolve(payload)}
       options={{ onSuccess: declarativeOnSuccessCallback }}
     >
       {getAsyncTask => (
         <>
-          {asyncRender(getAsyncTask('A'), {
+          {getAsyncTask('A').render({
             init: () => INIT_TEXT_A,
             inProgress: () => IN_PROGRESS_TEXT_A,
             success: () => SUCCESS_TEXT_A,
           })}
-          {asyncRender(getAsyncTask('B'), {
+          {getAsyncTask('B').render({
             init: () => INIT_TEXT_B,
             inProgress: () => IN_PROGRESS_TEXT_B,
             success: () => SUCCESS_TEXT_B,
@@ -251,19 +241,19 @@ it('updates parallel async tasks up to `ErrorAsync` state, invokes `onError` cal
   const declarativeOnErrorCallback = jest.fn();
   const imperativeOnErrorCallbackA = jest.fn();
   const imperativeOnErrorCallbackB = jest.fn();
-  const { container, getByTestId } = testingRender(
+  const { container, getByTestId } = render(
     <UseManyAsyncTasksComponent
       getTask={() => error => Promise.reject(error)}
       options={{ onError: declarativeOnErrorCallback }}
     >
       {getAsyncTask => (
         <>
-          {asyncRender(getAsyncTask('A'), {
+          {getAsyncTask('A').render({
             init: () => INIT_TEXT_A,
             inProgress: () => IN_PROGRESS_TEXT_A,
             error: () => ERROR_TEXT_A,
           })}
-          {asyncRender(getAsyncTask('B'), {
+          {getAsyncTask('B').render({
             init: () => INIT_TEXT_B,
             inProgress: () => IN_PROGRESS_TEXT_B,
             error: () => ERROR_TEXT_B,
@@ -323,19 +313,19 @@ it('updates parallel async task to `InitAsync` and aborted `InitAsync` state and
   const SUCCESS_TEXT_B = 'SUCCESS_B_ugruvewk';
   const onAbortCallback = jest.fn();
 
-  const { container, getByTestId } = testingRender(
+  const { container, getByTestId } = render(
     <UseManyAsyncTasksComponent
       getTask={signal => () =>
         getAbortablePromise({ resolveWith: {}, signal, onAbortCallback })}
     >
       {getAsyncTask => (
         <>
-          {asyncRender(getAsyncTask('A'), {
+          {getAsyncTask('A').render({
             init: aborted => (aborted ? ABORTED_TEXT_A : INIT_TEXT_A),
             inProgress: () => IN_PROGRESS_TEXT_A,
             success: () => SUCCESS_TEXT_A,
           })}
-          {asyncRender(getAsyncTask('B'), {
+          {getAsyncTask('B').render({
             init: aborted => (aborted ? ABORTED_TEXT_B : INIT_TEXT_B),
             inProgress: () => IN_PROGRESS_TEXT_B,
             success: () => SUCCESS_TEXT_B,
@@ -399,19 +389,19 @@ it('updates sequential async task to `InitAsync` and aborted `InitAsync` state a
   const SUCCESS_TEXT_A = 'SUCCESS_A_vuvnaijo';
   const SUCCESS_TEXT_B = 'SUCCESS_B_lepolhen';
   const onAbortCallback = jest.fn();
-  const { container, getByTestId } = testingRender(
+  const { container, getByTestId } = render(
     <UseManyAsyncTasksComponent
       getTask={signal => () =>
         getAbortablePromise({ resolveWith: {}, signal, onAbortCallback })}
     >
       {getAsyncTask => (
         <>
-          {asyncRender(getAsyncTask('A'), {
+          {getAsyncTask('A').render({
             init: aborted => (aborted ? ABORTED_TEXT_A : INIT_TEXT_A),
             inProgress: () => IN_PROGRESS_TEXT_A,
             success: () => SUCCESS_TEXT_A,
           })}
-          {asyncRender(getAsyncTask('B'), {
+          {getAsyncTask('B').render({
             init: aborted => (aborted ? ABORTED_TEXT_B : INIT_TEXT_B),
             inProgress: () => IN_PROGRESS_TEXT_B,
             success: () => SUCCESS_TEXT_B,
@@ -486,19 +476,19 @@ it('updates parallel `SuccessAsync` task to invalidated `SuccessAsync` state aft
   const INVALIDATED_TEXT_B = 'INVALIDATED_B_utmusole';
   let counterA = 0;
   let counterB = 0;
-  const { container, getByTestId } = testingRender(
+  const { container, getByTestId } = render(
     <UseManyAsyncTasksComponent
       getTask={() => (payload: number) => Promise.resolve(payload)}
     >
       {getAsyncTask => (
         <>
-          {asyncRender(getAsyncTask('A'), {
+          {getAsyncTask('A').render({
             init: () => INIT_TEXT_A,
             inProgress: () => IN_PROGRESS_TEXT_A,
             success: (payload, invalidated) =>
               invalidated ? INVALIDATED_TEXT_A : payload,
           })}
-          {asyncRender(getAsyncTask('B'), {
+          {getAsyncTask('B').render({
             init: () => INIT_TEXT_B,
             inProgress: () => IN_PROGRESS_TEXT_B,
             success: (payload, invalidated) =>
@@ -544,19 +534,19 @@ it('updates sequential `SuccessAsync` task to invalidated `SuccessAsync` state a
   const INVALIDATED_TEXT_B = 'INVALIDATED_B_agkucosc';
   let counterA = 0;
   let counterB = 0;
-  const { container, getByTestId } = testingRender(
+  const { container, getByTestId } = render(
     <UseManyAsyncTasksComponent
       getTask={() => (payload: number) => Promise.resolve(payload)}
     >
       {getAsyncTask => (
         <>
-          {asyncRender(getAsyncTask('A'), {
+          {getAsyncTask('A').render({
             init: () => INIT_TEXT_A,
             inProgress: () => IN_PROGRESS_TEXT_A,
             success: (payload, invalidated) =>
               invalidated ? INVALIDATED_TEXT_A : payload,
           })}
-          {asyncRender(getAsyncTask('B'), {
+          {getAsyncTask('B').render({
             init: () => INIT_TEXT_B,
             inProgress: () => IN_PROGRESS_TEXT_B,
             success: (payload, invalidated) =>

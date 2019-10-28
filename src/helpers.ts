@@ -31,13 +31,14 @@ export const isAnyaborted = (...args: Async<unknown>[]): boolean =>
 
 export const setInProgressOrInvalidated = <Payload>(
   origin: Async<Payload>,
-): InProgressAsync | SuccessAsync<Payload> =>
+): InProgressAsync<Payload> | SuccessAsync<Payload> =>
   origin.isSuccess()
     ? new SuccessAsync(origin.payload, true)
     : new InProgressAsync();
 
-export const setInitOrAborted = <Payload>(origin: Async<Payload>): InitAsync =>
-  new InitAsync(origin.isInProgressOrInvalidated());
+export const setInitOrAborted = <Payload>(
+  origin: Async<Payload>,
+): InitAsync<Payload> => new InitAsync(origin.isInProgressOrInvalidated());
 
 export const map = <Payload1, Payload2>(
   origin: Async<Payload1>,
@@ -49,7 +50,7 @@ export const map = <Payload1, Payload2>(
         mapper(origin.payload),
         invalidated !== undefined ? invalidated : origin.invalidated,
       )
-    : origin;
+    : ((origin as unknown) as Async<Payload2>);
 
 //
 // Higher level helpers
@@ -80,11 +81,11 @@ export async function triggerTask<Payload>(
     return successAsync;
   } catch (error) {
     if (error && error.name === 'AbortError') {
-      const abortedAsync = new InitAsync(true);
+      const abortedAsync = new InitAsync<Payload>(true);
       callback(() => abortedAsync);
       return abortedAsync;
     } else {
-      const errorAsync = new ErrorAsync(error);
+      const errorAsync = new ErrorAsync<Payload>(error);
       const cancalUpdates = callback(() => errorAsync);
       !cancalUpdates && onError && onError(error);
       return errorAsync;

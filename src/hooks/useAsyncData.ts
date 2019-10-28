@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AsyncTaskOptions, triggerTask, setInitOrAborted } from '../helpers';
 import { Async, InitAsync } from '../Asyncs';
+import { useStopRunawayEffect } from './useStopRunawayEffect';
 
 const ABORT_DEFINED = typeof AbortController !== 'undefined';
 
@@ -17,6 +18,7 @@ export function useAsyncData<Payload>(
   getData: (singal?: AbortSignal) => Promise<Payload>,
   { onSuccess, onError, disabled }: UseAsyncDataOptions<Payload> = {},
 ): AsyncData<Payload> {
+  useStopRunawayEffect({ getData, onError, onSuccess });
   const [asyncPayload, setAsyncPayload] = useState<Async<Payload>>(
     new InitAsync() as AsyncData<Payload>,
   );
