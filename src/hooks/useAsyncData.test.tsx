@@ -1,5 +1,5 @@
+import { cleanup, fireEvent, render, wait } from '@testing-library/react';
 import React, { ReactNode, ReactElement } from 'react';
-import { cleanup, fireEvent, render, wait } from 'react-testing-library';
 import { Async, AsyncData, useAsyncData, UseAsyncDataOptions } from '../index';
 
 afterEach(cleanup);
