@@ -4,10 +4,10 @@ node_js:
 sudo: false
 if: tag IS blank
 script:
-  - npm run lint
-  - npm test
-  - npm run build
-after_success: npm run coverage
+  - yarn lint
+  - yarn test
+  - yarn build
+after_success: yarn coverage
 deploy:
   provider: npm
   email: carlos.gines.fuster@gmail.com
