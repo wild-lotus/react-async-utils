@@ -215,12 +215,10 @@ See the [API Reference](#useasynctask) for more details.
 
 ### render
 
-A good option is the `render` helper method. You can provide a render method per state. The corresponding one will be used:
+A good option is the `render` class method. You can provide a specific render method per state. The corresponding one will be used:
 
 ```tsx
-import { render } from 'react-async-utls';
-
-render(asyncPerson, {
+asyncPerson.render({
   init: () => <p>INIT state render. Nothing happened yet.</p>,
   inProgress: () => (
     <p>IN PROGRESS state render. We are fetching our Person.</p>
@@ -392,6 +390,19 @@ public getError(): Error | undefined
 ```
 
 - **@returns** corresponding `Error` if async object is in ERROR state or `undefined` otherwise.
+
+### `render`
+
+```typescript
+  public render({
+    init?: (aborted?: boolean) => ReactNode;
+    inProgress?: () => ReactNode;
+    success?: (payload: Payload, invalidated?: boolean) => ReactNode;
+    error?: (error: Error) => ReactNode;
+  }): ReactNode
+```
+
+- **@returns** the `ReactNode` corresponding to the render function of the async object current state, or `null` if not provided.
 
 ## Hooks
 
