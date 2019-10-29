@@ -278,7 +278,7 @@ Work in progress.
 ## InitAsync
 
 ```typescript
-class InitAsync {
+class InitAsync<Payload> {
   public progress: Progress.Init;
   public aborted?: boolean;
   public constructor(aborted?: boolean);
@@ -290,7 +290,7 @@ Represents the INIT state **and** the ABORTED sub-state.
 ## InProgressAsync
 
 ```typescript
-class InProgressAsync {
+class InProgressAsync<Payload> {
   public progress: Progress.InProgress;
   public constructor();
 }
@@ -301,7 +301,7 @@ Represents the IN PROGRESS state.
 ## SuccessAsync
 
 ```typescript
-class SuccessAsync {
+class SuccessAsync<Payload> {
   public progress: Progress.Success;
   public payload: Payload;
   public invalidated?: boolean;
@@ -314,7 +314,7 @@ Represents the SUCCESS state, with its corresponding payload **and** the INVALID
 ## ErrorAsync
 
 ```typescript
-class ErrorAsync {
+class ErrorAsync<Payload> {
   public progress: Progress.Error;
   public error: Error;
   public constructor(error: Error);
@@ -429,7 +429,7 @@ type AsyncData<Payload> = Async<Payload> & {
 
 This hook is suitable for handling any kind of querying or data fetching. It takes care of race conditions and it cleans up on component unmount.
 
-⚠️ Be careful, all input functions (`getData`, `onSuccess`, `onError`) are dependencies of the effect it uses. You can create infinite loops if you do not hand them carefully. Wrap the input functions in `React.useCallback` if needed to prevent these infinite loops.
+⚠️ Be careful, all input functions (`getData`, `onSuccess`, `onError`) are dependencies of the effect it uses. You can create infinite loops if you do not hand them carefully. Wrap the input functions in `React.useCallback` if needed to prevent these infinite loops. **But don't worry too much**: we produce an error with detailed info in case this happens.
 
 Definition:
 
